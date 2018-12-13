@@ -6,7 +6,8 @@ services:
     volumes:
       - .:/app
     environment:
-      DATABASE_URL: postgres://nycdb:nycdb@db/nycdb
+      DATABASE_URL: ${DATABASE_URL}
+      USE_TEST_DATA: ${USE_TEST_DATA}
     links:
       - db
   db:

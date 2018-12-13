@@ -3,3 +3,4 @@ jobs/
 Dockerfile
 docker-compose.yml
 __pycache__/
+.env
