@@ -1,0 +1,4 @@
+# Currently nyc-db mentions psycopg2 as a dependency, which is deprecated
+# and will log lots of annoying warnings about using psycopg2-binary
+# instead, so let's just install that to avoid the warnings.
+psycopg2-binary

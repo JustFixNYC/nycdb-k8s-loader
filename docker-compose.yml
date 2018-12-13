@@ -1,0 +1,16 @@
+version: '2'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgres://nycdb:nycdb@db/nycdb
+    links:
+      - db
+  db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=nycdb
+      - POSTGRES_DB=nycdb
+      - POSTGRES_PASSWORD=nycdb
