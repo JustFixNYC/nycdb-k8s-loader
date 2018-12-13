@@ -77,9 +77,13 @@ def call_nycdb(*args: str):
     subprocess.check_call(NYCDB_CMD + list(args))
 
 
-def main():
+def sanity_check():
     assert DATASETS_YML.exists()
     assert TEST_DATA_DIR.exists()
+
+
+def main():
+    sanity_check()
 
     NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
