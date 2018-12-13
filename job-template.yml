@@ -1,12 +1,12 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: load_dataset
+  name: load-dataset
 spec:
   template:
     spec:
       containers:
-      - name: load_dataset
-        image: nycdb-load-dataset
+      - name: load-dataset
+        image: nycdb-load-dataset:boop
       restartPolicy: Never
   backoffLimit: 4

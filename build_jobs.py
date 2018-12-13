@@ -20,6 +20,10 @@ def get_env(name: str) -> Dict[str, str]:
     }
 
 
+def slugify(name: str) -> str:
+    return name.replace('_', '-')
+
+
 def main():
     load_dataset.sanity_check()
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
@@ -30,6 +34,9 @@ def main():
 
     for dataset in datasets:
         template = yaml.load(JOB_TEMPLATE.read_text())
+        name = template['metadata']['name']
+        name = f"{name}-{slugify(dataset)}"
+        template['metadata']['name'] = name
         c = template['spec']['template']['spec']['containers'][0]
         c['command'] = [
             'python',
