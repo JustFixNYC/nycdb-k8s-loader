@@ -1,6 +1,7 @@
 version: '2'
 services:
   app:
+    image: nycdb-load-dataset:boop
     build: .
     volumes:
       - .:/app
