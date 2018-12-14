@@ -21,7 +21,7 @@ introspecting the state of the NYC-DB dataset loader jobs very easy.
 First, you'll want to create an `.env` file by copying the example one:
 
 ```
-cp .env.example .env     # Or 'copy .env.examplpe .env' on Windows
+cp .env.example .env     # Or 'copy .env.example .env' on Windows
 ```
 
 Take a look at the `.env` file and make any changes to it, if you like.
