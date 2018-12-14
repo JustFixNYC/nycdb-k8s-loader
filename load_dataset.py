@@ -12,6 +12,7 @@ NYCDB_DIR = Path('/nyc-db/src')
 
 DATABASE_URL = os.environ['DATABASE_URL']
 USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
+DATASET = os.environ.get('DATASET', '')
 
 DATASETS_YML = NYCDB_DIR / 'nycdb' / 'datasets.yml'
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
@@ -89,10 +90,15 @@ def main():
 
     tables = get_dataset_tables()
 
-    if len(sys.argv) <= 1:
-        print(f"Usage: {sys.argv[0]} <dataset>")
-        sys.exit(1)
-    dataset = sys.argv[1]
+    dataset = DATASET
+
+    if not dataset:
+        if len(sys.argv) <= 1:
+            print(f"Usage: {sys.argv[0]} <dataset>")
+            print(f"Alternatively, set the DATASET environment variable.")
+            sys.exit(1)
+        dataset = sys.argv[1]
+
     tables = get_tables_for_dataset(dataset)
     call_nycdb('--download', dataset)
     drop_tables_if_they_exist(tables)
