@@ -5,7 +5,6 @@ from typing import NamedTuple, List
 from types import SimpleNamespace
 from copy import deepcopy
 import urllib.parse
-import psycopg2
 import nycdb.dataset
 from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
@@ -18,7 +17,7 @@ USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
 
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
-TEMP_PREFIX = 'temp_'
+TEMP_SCHEMA = 'temp_schema'
 
 DB_INFO = urllib.parse.urlparse(DATABASE_URL)
 DB_PORT = DB_INFO.port or 5432
@@ -61,23 +60,11 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
     return tables
 
 
-def rename_tables(from_: List[TableInfo], to: List[TableInfo]):
-    assert len(from_) == len(to)
-    with psycopg2.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cur:
-            for from_table, to_table in zip(from_, to):
-                f = from_table.name
-                t = to_table.name
-                print(f"Renaming table '{f}' to '{t}'.")
-                cur.execute(f"ALTER TABLE {f} RENAME TO {t}")
-
-
-def drop_tables_if_they_exist(tables: List[TableInfo]):
-    with psycopg2.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cur:
-            for table in tables:
-                print(f"Dropping table '{table.name}' if it exists.")
-                cur.execute(f"DROP TABLE IF EXISTS {table.name}")
+def change_table_schemas(conn, tables: List[TableInfo], schema: str):
+    with conn.cursor() as cur:
+        for table in tables:
+            print(f"Setting table '{table.name}' schema to '{schema}'.")
+            cur.execute(f"ALTER TABLE {table.name} SET SCHEMA {schema}")
 
 
 def alter_dataset_to_use_table_prefix(dataset: Dataset, prefix: str):
@@ -106,24 +93,23 @@ def main():
     dataset_name = sys.argv[1]
 
     tables = get_tables_for_dataset(dataset_name)
-    temp_tables = [
-        table._replace(name=f"{TEMP_PREFIX}{table.name}")
-        for table in tables
-    ]
 
     ds = Dataset(dataset_name, args=NYCDB_ARGS)
-    alter_dataset_to_use_table_prefix(ds, TEMP_PREFIX)
+    ds.setup_db()
+    conn = ds.db.conn
 
     ds.download_files()
 
-    drop_tables_if_they_exist(temp_tables)
+    with conn.cursor() as cur:
+        cur.execute('; '.join([
+            f"DROP SCHEMA IF EXISTS {TEMP_SCHEMA} CASCADE",
+            f"CREATE SCHEMA {TEMP_SCHEMA}",
+            f"SET search_path TO {TEMP_SCHEMA}"
+        ]))
 
-    # Note that this will import to tables with the temp prefix.
     ds.db_import()
 
-    # TODO: Consider wrapping these in a transaction.
-    drop_tables_if_they_exist(tables)
-    rename_tables(temp_tables, tables)
+    change_table_schemas(conn, tables, 'public')
 
     print("Success!")
 
