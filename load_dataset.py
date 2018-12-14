@@ -1,12 +1,11 @@
 import os
 import sys
+import subprocess
 from pathlib import Path
 from typing import NamedTuple, List
-from types import SimpleNamespace
 import urllib.parse
 import psycopg2
-from nycdb import dataset
-from nycdb.utility import list_wrap
+import yaml
 
 
 NYCDB_DIR = Path('/nyc-db/src')
@@ -14,6 +13,7 @@ NYCDB_DIR = Path('/nyc-db/src')
 DATABASE_URL = os.environ['DATABASE_URL']
 USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
 
+DATASETS_YML = NYCDB_DIR / 'nycdb' / 'datasets.yml'
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
 
@@ -24,14 +24,15 @@ DB_NAME = DB_INFO.path[1:]
 DB_USER = DB_INFO.username
 DB_PASSWORD = DB_INFO.password
 
-NYCDB_ARGS = SimpleNamespace(
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    database=DB_NAME,
-    port=str(DB_PORT),
-    root_dir=str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR)
-)
+NYCDB_CMD = [
+    'nycdb',
+    '-D', DB_NAME,
+    '-H', DB_HOST,
+    '-U', DB_USER,
+    '-P', DB_PASSWORD,
+    '--port', str(DB_PORT),
+    '--root-dir', str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR),
+]
 
 
 class TableInfo(NamedTuple):
@@ -39,10 +40,16 @@ class TableInfo(NamedTuple):
     dataset: str
 
 
-def get_dataset_tables() -> List[TableInfo]:
+def get_dataset_tables(yaml_file: Path=DATASETS_YML) -> List[TableInfo]:
+    yml = yaml.load(yaml_file.read_text())
     result: List[TableInfo] = []
-    for dataset_name, info in dataset.datasets().items():
-        for schema in list_wrap(info['schema']):
+    for dataset_name, info in yml.items():
+        schema = info['schema']
+        if isinstance(schema, dict):
+            schemas = [schema]
+        else:
+            schemas = schema
+        for schema in schemas:
             result.append(TableInfo(name=schema['table_name'], dataset=dataset_name))
     return result
 
@@ -66,7 +73,12 @@ def drop_tables_if_they_exist(tables: List[TableInfo]):
                 cur.execute(f"DROP TABLE IF EXISTS {table.name}")
 
 
+def call_nycdb(*args: str):
+    subprocess.check_call(NYCDB_CMD + list(args))
+
+
 def sanity_check():
+    assert DATASETS_YML.exists()
     assert TEST_DATA_DIR.exists()
 
 
@@ -80,12 +92,11 @@ def main():
     if len(sys.argv) <= 1:
         print(f"Usage: {sys.argv[0]} <dataset>")
         sys.exit(1)
-    dataset_name = sys.argv[1]
-    tables = get_tables_for_dataset(dataset_name)
-    ds = dataset.Dataset(dataset_name, args=NYCDB_ARGS)
-    ds.download_files()
+    dataset = sys.argv[1]
+    tables = get_tables_for_dataset(dataset)
+    call_nycdb('--download', dataset)
     drop_tables_if_they_exist(tables)
-    ds.db_import()
+    call_nycdb('--load', dataset)
     print("Success!")
 
 
