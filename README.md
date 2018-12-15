@@ -74,8 +74,43 @@ If you want to stop the jobs, or clean them up once they're finished, run:
 kubectl delete -f ./jobs
 ```
 
+## Using Amazon Fargate
+
+It's also possible to deploy this container as a Task on [Amazon Fargate][],
+which supports scheduled tasks. Here are some guidelines:
+
+* The "get started" wizard for Fargate has you set up a Service
+  definition, but you won't need this particular feature, because
+  you're not setting up a web server or anything. You should be
+  able to safely delete the Service after you're done with the
+  wizard.
+
+* You can set your Task's container image to
+  [`justfixnyc/nycdb-k8s-loader:latest`][] and set the environment
+  variables as per the documentation in the
+  [`.env.example`][.env.example] file.
+
+* When running the Task, you'll want to set "Auto-assign public IP"
+  to `ENABLED`: even though the container doesn't need to be
+  accessed *by* anything, apparently your container needs a public IP
+  in order to access the outside world (see
+  [aws/amazon-ecs-agent#1128][] for more details). Note also that
+  this setting is part of _running_ a Task rather than _defining_
+  a Task.
+
+* Make sure your DB instance is accessible by the container in your
+  VPC. There can be situations where your DB might be accessible from
+  the internet, yet your container times out when attempting to
+  access it. This could be because the security group for your
+  RDS instance has inbound rules that only allow access from a
+  certain IP range. (If you created an RDS instance via the AWS
+  Console, its security group might be called `rds-launch-wizard`.)
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
 [enable-k8s]: https://docs.docker.com/docker-for-windows/#kubernetes
 [Kubernetes Dashboard UI]: https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/#deploying-the-dashboard-ui
+[Amazon Fargate]: https://aws.amazon.com/fargate/
+[`justfixnyc/nycdb-k8s-loader:latest`]: https://hub.docker.com/r/justfixnyc/nycdb-k8s-loader
+[aws/amazon-ecs-agent#1128]: https://github.com/aws/amazon-ecs-agent/issues/1128#issuecomment-351545461
