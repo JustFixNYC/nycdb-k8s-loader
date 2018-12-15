@@ -1,4 +1,10 @@
-# Currently nyc-db mentions psycopg2 as a dependency, which is deprecated
-# and will log lots of annoying warnings about using psycopg2-binary
-# instead, so let's just install that to avoid the warnings.
-psycopg2-binary
+certifi==2018.11.29
+chardet==3.0.4
+idna==2.8
+psycopg2==2.7.6.1
+pyproj==1.9.5.1
+PyYAML==3.13
+requests==2.21.0
+tqdm==4.28.1
+urllib3==1.24.1
+xlrd==1.2.0
