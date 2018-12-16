@@ -79,6 +79,11 @@ If you want to stop the jobs, or clean them up once they're finished, run:
 kubectl delete -f ./jobs
 ```
 
+## Querying load status
+
+If you want to get an idea of how loading is going without viewing logs,
+you could use the [`show_rowcounts.py`](show_rowcounts.py) utility.
+
 ## Using Amazon Fargate
 
 It's also possible to deploy this container as a Task on Amazon Fargate,
@@ -93,7 +98,7 @@ which supports scheduled tasks. Here are some guidelines:
 * You can set your Task's container image to
   [`justfixnyc/nycdb-k8s-loader:latest`][] and set the environment
   variables as per the documentation in the
-  [`.env.example`][.env.example] file.
+  [`.env.example`](.env.example) file.
 
 * When running the Task, you'll want to set "Auto-assign public IP"
   to `ENABLED`: even though the container doesn't need to be
@@ -112,7 +117,7 @@ which supports scheduled tasks. Here are some guidelines:
   Console, its security group might be called `rds-launch-wizard`.)
 
 To create scheduled tasks for loading each dataset on a regular basis,
-see [`aws_schedule_tasks.py`][aws_schedule_tasks.py].
+see [`aws_schedule_tasks.py`](aws_schedule_tasks.py).
 
 ## Tests
 
