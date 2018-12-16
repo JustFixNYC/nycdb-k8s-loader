@@ -2,7 +2,10 @@ version: '2'
 services:
   app:
     image: nycdb-load-dataset:boop
-    build: .
+    build:
+      context: .
+      args:
+        REQUIREMENTS_FILE: requirements.dev.txt
     volumes:
       - .:/app
     environment:

@@ -1,6 +1,8 @@
 FROM python:3.6-alpine
 
-COPY requirements.txt /
+COPY requirements* /
+
+ARG REQUIREMENTS_FILE=requirements.txt
 
 RUN apk update && \
   apk add postgresql-client unzip curl && \
@@ -9,7 +11,7 @@ RUN apk update && \
     gcc \
     python3-dev \
     musl-dev && \
-  pip install -r requirements.txt && \
+  pip install -r ${REQUIREMENTS_FILE} && \
   apk del build-dependencies && \
   rm -rf /var/cache/apk/*
 
@@ -31,3 +33,6 @@ COPY . /app
 WORKDIR /app
 
 CMD ["python", "load_dataset.py"]
+
+ENV PATH /var/pydev/bin:$PATH
+ENV PYTHONPATH /var/pydev

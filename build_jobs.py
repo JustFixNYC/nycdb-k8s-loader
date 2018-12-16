@@ -24,9 +24,9 @@ def slugify(name: str) -> str:
     return name.replace('_', '-')
 
 
-def main():
+def main(jobs_dir: Path=JOBS_DIR):
     load_dataset.sanity_check()
-    JOBS_DIR.mkdir(parents=True, exist_ok=True)
+    jobs_dir.mkdir(parents=True, exist_ok=True)
 
     datasets = set([
         table.dataset for table in load_dataset.get_dataset_tables()
@@ -47,7 +47,7 @@ def main():
             get_env('DATABASE_URL'),
             get_env('USE_TEST_DATA')
         ]
-        outfile = JOBS_DIR / f'load_dataset_{dataset}.yml'
+        outfile = jobs_dir / f'load_dataset_{dataset}.yml'
         print(f"Writing {outfile}.")
         outfile.write_text(yaml.dump(template))
     print("Done!")

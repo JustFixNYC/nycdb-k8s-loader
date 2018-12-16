@@ -106,6 +106,15 @@ which supports scheduled tasks. Here are some guidelines:
   certain IP range. (If you created an RDS instance via the AWS
   Console, its security group might be called `rds-launch-wizard`.)
 
+## Tests
+
+To run the test suite, run:
+
+```
+docker-compose run app pytest
+```
+
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
