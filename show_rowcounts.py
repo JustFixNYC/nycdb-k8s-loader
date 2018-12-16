@@ -63,7 +63,7 @@ def main():
     tables = get_tables_for_datasets(dataset_names)
 
     for table, count in get_rowcounts(os.environ['DATABASE_URL'], tables):
-        print(f"{table} has {count} rows.")
+        print(f"{table} has {count:,} rows.")
 
 
 if __name__ == '__main__':
