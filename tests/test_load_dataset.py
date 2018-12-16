@@ -7,6 +7,7 @@ import pytest
 
 
 import load_dataset
+import show_rowcounts
 
 
 DATABASE_URL = f"{load_dataset.DATABASE_URL}_test"
@@ -72,11 +73,9 @@ def drop_table(name: str):
             cur.execute(f'DROP TABLE IF EXISTS {name}')
 
 
-def get_row_count(table_name: str):
-    with psycopg2.connect(**CONNECT_ARGS) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f'SELECT COUNT(*) FROM {table_name}')
-            return cur.fetchone()[0]
+def get_row_count(table_name: str) -> int:
+    counts = dict(show_rowcounts.get_rowcounts(DATABASE_URL, [table_name]))
+    return counts[table_name]
 
 
 def test_load_dataset_works(test_db_env):
