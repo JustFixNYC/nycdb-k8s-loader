@@ -1,7 +1,8 @@
 [![CircleCI](https://circleci.com/gh/JustFixNYC/nycdb-k8s-loader.svg?style=svg)](https://circleci.com/gh/JustFixNYC/nycdb-k8s-loader)
 
 This repository was created to explore the possibility of
-populating a [NYC-DB][] instance via [Kubernetes Jobs][].
+populating a [NYC-DB][] instance via [Kubernetes Jobs][]
+or [Amazon Fargate][].
 
 The potential advantage of this is that it parallelizes the
 workload over multiple machines, which could increase the
@@ -10,7 +11,9 @@ speed of populating the database.
 Furthermore, while it hasn't yet been explored at the
 time of this writing, Kubernetes also supports [Cron Jobs][],
 so even a single-node cluster could be used to keep a
-NYC-DB instance continuously updated.
+NYC-DB instance continuously updated. Amazon Fargate supports
+[Scheduled Tasks][], so a NYC-DB could be continuously
+updated on AWS infrastructure as well.
 
 ## Quick start
 
@@ -78,7 +81,7 @@ kubectl delete -f ./jobs
 
 ## Using Amazon Fargate
 
-It's also possible to deploy this container as a Task on [Amazon Fargate][],
+It's also possible to deploy this container as a Task on Amazon Fargate,
 which supports scheduled tasks. Here are some guidelines:
 
 * The "get started" wizard for Fargate has you set up a Service
@@ -125,3 +128,4 @@ docker-compose run app pytest
 [Amazon Fargate]: https://aws.amazon.com/fargate/
 [`justfixnyc/nycdb-k8s-loader:latest`]: https://hub.docker.com/r/justfixnyc/nycdb-k8s-loader
 [aws/amazon-ecs-agent#1128]: https://github.com/aws/amazon-ecs-agent/issues/1128#issuecomment-351545461
+[Scheduled Tasks]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html
