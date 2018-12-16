@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/JustFixNYC/nycdb-k8s-loader.svg?style=svg)](https://circleci.com/gh/JustFixNYC/nycdb-k8s-loader)
+
 This repository was created to explore the possibility of
 populating a [NYC-DB][] instance via [Kubernetes Jobs][].
 
