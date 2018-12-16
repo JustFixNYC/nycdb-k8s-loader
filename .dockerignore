@@ -5,3 +5,4 @@ docker-compose.yml
 __pycache__/
 .env
 .mypy_cache/
+venv/

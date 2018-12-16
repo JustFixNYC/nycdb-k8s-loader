@@ -111,6 +111,9 @@ which supports scheduled tasks. Here are some guidelines:
   certain IP range. (If you created an RDS instance via the AWS
   Console, its security group might be called `rds-launch-wizard`.)
 
+To create scheduled tasks for loading each dataset on a regular basis,
+see [`aws_schedule_tasks.py`][aws_schedule_tasks.py].
+
 ## Tests
 
 To run the test suite, run:
