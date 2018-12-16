@@ -7,6 +7,8 @@ import urllib.parse
 import psycopg2
 import yaml
 
+import slack
+
 
 NYCDB_DIR = Path('/nyc-db/src')
 
@@ -100,9 +102,12 @@ def main():
         dataset = sys.argv[1]
 
     tables = get_tables_for_dataset(dataset)
+    slack.sendmsg(f'Downloading the dataset `{dataset}`...')
     call_nycdb('--download', dataset)
+    slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
     drop_tables_if_they_exist(tables)
     call_nycdb('--load', dataset)
+    slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
 

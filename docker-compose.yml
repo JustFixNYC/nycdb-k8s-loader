@@ -12,6 +12,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       USE_TEST_DATA: ${USE_TEST_DATA}
       DATASET: ${DATASET}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
     links:
       - db
   db:
