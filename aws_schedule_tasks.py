@@ -32,7 +32,10 @@ from typing import List, Dict
 import json
 import boto3
 import docopt
+import dotenv
 import nycdb.datasets
+
+dotenv.load_dotenv()
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = list(nycdb.datasets.datasets().keys())

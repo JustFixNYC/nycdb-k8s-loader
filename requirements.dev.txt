@@ -4,3 +4,4 @@ pytest
 requests-mock
 boto3
 docopt
+python-dotenv
