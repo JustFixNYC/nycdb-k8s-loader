@@ -59,11 +59,14 @@ CONTAINER_NAME = 'nycdb-k8s-loader'
 
 # Various schedule expressions.
 #
+# Because Amazon uses a weird cron format without any way to
+# convert them into plain language, who knows if these are correct.
+#
 # For more details on schedule expressions, see:
 #
 # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-DAILY = 'rate(1 day)'
-MONTHLY = 'rate(30 days)'
+DAILY = 'cron(0 0 * * ? *)'     # Daily at midnight, I think?
+MONTHLY = 'cron(0 0 1 * ? *)'   # The first of every month at midnight, maybe?
 YEARLY = 'rate(365 days)'
 
 # The default schedule expression for a dataset loader, if
