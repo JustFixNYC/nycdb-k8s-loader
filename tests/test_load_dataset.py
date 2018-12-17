@@ -2,22 +2,29 @@ import os
 import time
 import subprocess
 import psycopg2
+import urllib.parse
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import pytest
-
 
 import load_dataset
 import show_rowcounts
 
 
-DATABASE_URL = f"{load_dataset.DATABASE_URL}_test"
+DATABASE_URL = os.environ['TEST_DATABASE_URL']
+
+DB_INFO = urllib.parse.urlparse(DATABASE_URL)
+DB_PORT = DB_INFO.port or 5432
+DB_HOST = DB_INFO.hostname
+DB_NAME = DB_INFO.path[1:]
+DB_USER = DB_INFO.username
+DB_PASSWORD = DB_INFO.password
 
 CONNECT_ARGS = dict(
-    user=load_dataset.DB_USER,
-    password=load_dataset.DB_PASSWORD,
-    host=load_dataset.DB_HOST,
-    database=f"{load_dataset.DB_NAME}_test",
-    port=load_dataset.DB_PORT
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    database=DB_NAME,
+    port=DB_PORT
 )
 
 
