@@ -10,6 +10,8 @@ There are a few potential advantages to this approach:
   it could be more convenient than learning how to
   deploy via a VPS or through tools like Ansible.
 
+* Containerization allows for nice dev/prod parity.
+
 * It potentially parallelizes the workload over multiple machines,
   which could increase the speed of populating the database.
 
