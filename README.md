@@ -116,6 +116,16 @@ which supports scheduled tasks. Here are some guidelines:
   certain IP range. (If you created an RDS instance via the AWS
   Console, its security group might be called `rds-launch-wizard`.)
 
+* At the time of this writing, it's not possible to see task-level
+  CPU/memory utilization in CloudWatch, which is unfortunate (see
+  [aws/amazon-ecs-agent#565](https://github.com/aws/amazon-ecs-agent/issues/565)).
+
+* At the time of this writing, it's not possible to use a SSM parameter
+  store as a secret store (see
+  [aws/amazon-ecs-agent#1209](https://github.com/aws/amazon-ecs-agent/issues/1209)).
+  This means you will probably need to specify your database URL as
+  plaintext in your task definition.
+
 To create scheduled tasks for loading each dataset on a regular basis,
 see [`aws_schedule_tasks.py`](aws_schedule_tasks.py).
 
