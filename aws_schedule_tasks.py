@@ -16,11 +16,17 @@ This tool currently has a lot of limitations, as it
 expects the following to already be set up for it:
 
   * an IAM role allowing CloudWatch events to start
-    ECS tasks.
-  * an ECS cluster.
-  * a VPC with a subnet for the ECS task.
-  * a task definition, with all environment variables
-    pre-filled except for DATASET and USE_TEST_DATA.
+    ECS tasks, specified by the ECS_EVENTS_ROLE
+    constant in this script.
+  * an ECS cluster (it currently simply uses the first
+    cluster it finds).
+  * a VPC with a subnet for the ECS task (it currently
+    simply uses the first VPC it finds).
+  * a task definition, with a single container that
+    has all environment variables pre-filled except
+    for DATASET and USE_TEST_DATA. The name of the task
+    and container are specified by TASK_DEFINITION_NAME
+    and CONTAINER_NAME in this script, respectively.
 
 In other words, this tool is only responsible for
 managing CloudWatch rules to schedule the dataset-loading
@@ -193,6 +199,10 @@ def create_tasks(args):
     iam = boto3.client('iam')
     role_arn = iam.get_role(RoleName=ECS_EVENTS_ROLE)['Role']['Arn']
 
+    # TODO: Ideally we should also allow the cluster name to be passed in
+    # as a command-line argument, rather than simply using the first one
+    # we find.
+
     print(f"Obtaining cluster information.")
     ecs = boto3.client('ecs')
     cluster_arn = ecs.list_clusters()['clusterArns'][0]
@@ -202,6 +212,10 @@ def create_tasks(args):
     task_arn = ecs.describe_task_definition(
         taskDefinition=TASK_DEFINITION_NAME)['taskDefinition']['taskDefinitionArn']
     print(f"Found {task_arn}.")
+
+    # TODO: Ideally we should also allow the VPC/subnet name to be passed in
+    # as a command-line argument, rather than simply using the first one
+    # we find.
 
     print(f"Obtaining subnet information.")
     subnet = find_subnet()
