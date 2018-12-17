@@ -4,24 +4,33 @@ This repository was created to explore the possibility of
 populating a [NYC-DB][] instance via [Kubernetes Jobs][]
 or [Amazon Fargate][].
 
-The potential advantage of this is that it parallelizes the
-workload over multiple machines, which could increase the
-speed of populating the database.
+There are a few potential advantages to this approach:
 
-Furthermore, while it hasn't yet been explored at the
-time of this writing, Kubernetes also supports [Cron Jobs][],
-so even a single-node cluster could be used to keep a
-NYC-DB instance continuously updated. Amazon Fargate supports
-[Scheduled Tasks][], so a NYC-DB could be continuously
-updated on AWS infrastructure as well.
+* For developers who are more conversant with containerization,
+  it could be more convenient than learning how to
+  deploy via a VPS or through tools like Ansible.
 
-## Quick start
+* It potentially parallelizes the workload over multiple machines,
+  which could increase the speed of populating the database.
 
-You will need Docker, and a Kubernetes (k8s) cluster. The easiest way to
-obtain the latter is by [enabling Kubernetes on Docker Desktop][enable-k8s].
+* Kubernetes supports [Cron Jobs][], so even a single-node cluster
+  could be used to keep a NYC-DB instance continuously updated,
+  with a convenient UI provided via the Kubernetes Dashboard. This
+  might be easier to manage than e.g. custom cron jobs on a VPS.
+  (Note, however, that at the time of this writing, no tooling is
+  provided to help configure Kubernetes Cron Jobs.)
 
-You may also want to deploy the [Kubernetes Dashboard UI][], as it makes
-introspecting the state of the NYC-DB dataset loader jobs very easy.
+  Amazon Fargate supports [Scheduled Tasks][], so a NYC-DB can be
+  continuously updated on AWS infrastructure as well, though
+  at the time of this writing it has a number of limitations
+  compared to the Kubernetes approach. However, unlike Kubernetes,
+  it also doesn't require any kind of master server, so it
+  could be less expensive to maintain. A script is
+  also included in this repository to help configure such tasks.
+
+## Setup
+
+You will need Docker.
 
 First, you'll want to create an `.env` file by copying the example one:
 
@@ -31,7 +40,7 @@ cp .env.example .env     # Or 'copy .env.example .env' on Windows
 
 Take a look at the `.env` file and make any changes to it, if you like.
 
-### Development
+## Development
 
 The easiest way to develop the loader is via Docker Compose, as it sets up
 a development Postgres server for you.
@@ -47,7 +56,14 @@ directory is mounted to the root of the repository on your local filesystem,
 so any changes you make to any files will instantly be reflected in the
 container environment.
 
-### Deployment
+## Deployment: Kubernetes
+
+You'll need a Kubernetes (k8s) cluster. The easiest way to
+obtain one on your local machine is by
+[enabling Kubernetes on Docker Desktop][enable-k8s].
+
+You may also want to deploy the [Kubernetes Dashboard UI][], as it makes
+introspecting the state of the NYC-DB dataset loader jobs very easy.
 
 You'll want to build your container image by running:
 
@@ -79,12 +95,7 @@ If you want to stop the jobs, or clean them up once they're finished, run:
 kubectl delete -f ./jobs
 ```
 
-## Querying load status
-
-If you want to get an idea of how loading is going without viewing logs,
-you could use the [`show_rowcounts.py`](show_rowcounts.py) utility.
-
-## Using Amazon Fargate
+## Deployment: Amazon Fargate
 
 It's also possible to deploy this container as a Task on Amazon Fargate,
 which supports scheduled tasks. Here are some guidelines:
@@ -129,6 +140,11 @@ which supports scheduled tasks. Here are some guidelines:
 To create scheduled tasks for loading each dataset on a regular basis,
 see [`aws_schedule_tasks.py`](aws_schedule_tasks.py).
 
+## Querying load status
+
+If you want to get an idea of how loading is going without viewing logs,
+you could use the [`show_rowcounts.py`](show_rowcounts.py) utility.
+
 ## Tests
 
 To run the test suite, run:
@@ -136,7 +152,6 @@ To run the test suite, run:
 ```
 docker-compose run app pytest
 ```
-
 
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
