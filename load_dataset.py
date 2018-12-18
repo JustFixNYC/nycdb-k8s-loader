@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import contextlib
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
@@ -64,11 +65,46 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
     return tables
 
 
-def drop_tables_if_they_exist(conn, tables: List[TableInfo]):
+def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
     with conn.cursor() as cur:
         for table in tables:
-            print(f"Dropping table '{table.name}' if it exists.")
-            cur.execute(f"DROP TABLE IF EXISTS {table.name}")
+            name = f"{schema}.{table.name}"
+            print(f"Dropping table '{name}' if it exists.")
+            cur.execute(f"DROP TABLE IF EXISTS {name}")
+    conn.commit()
+
+
+@contextlib.contextmanager
+def create_and_enter_temporary_schema(conn, schema: str):
+    with conn.cursor() as cur:
+         cur.execute('; '.join([
+             f"DROP SCHEMA IF EXISTS {schema} CASCADE",
+             f"CREATE SCHEMA {schema}",
+             # Note that we still need public at the end of the search
+             # path since we want functions like first(), which are
+             # declared in the public schema, to work.
+             f"SET search_path TO {schema}, public"
+         ]))
+    conn.commit()
+
+    try:
+        yield
+    finally:
+        with conn.cursor() as cur:
+            cur.execute('; '.join([
+                f'DROP SCHEMA {schema} CASCADE',
+                f'SET search_path TO public'
+            ]))
+        conn.commit()
+
+
+def change_table_schemas(conn, tables: List[TableInfo], from_schema: str, to_schema: str):
+    with conn.cursor() as cur:
+        for table in tables:
+            name = f"{from_schema}.{table.name}"
+            print(f"Setting table '{name}' schema to '{to_schema}'.")
+            cur.execute(f"ALTER TABLE {name} SET SCHEMA {to_schema}")
+    conn.commit()
 
 
 def sanity_check():
@@ -93,14 +129,18 @@ def main():
 
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=NYCDB_ARGS)
-    ds.setup_db()
-    conn = ds.db.conn
 
     slack.sendmsg(f'Downloading the dataset `{dataset}`...')
     ds.download_files()
+
     slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
-    drop_tables_if_they_exist(conn, tables)
-    ds.db_import()
+    ds.setup_db()
+    conn = ds.db.conn
+    temp_schema = f"temp_{dataset}"
+    with create_and_enter_temporary_schema(conn, temp_schema):
+        ds.db_import()
+        drop_tables_if_they_exist(conn, tables, 'public')
+        change_table_schemas(conn, tables, temp_schema, 'public')
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
