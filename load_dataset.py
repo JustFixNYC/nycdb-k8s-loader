@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import contextlib
+import time
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
@@ -44,6 +45,29 @@ NYCDB_ARGS = SimpleNamespace(
 class TableInfo(NamedTuple):
     name: str
     dataset: str
+
+
+def create_temp_schema_name(dataset: str) -> str:
+    return f'{get_temp_schema_prefix(dataset)}{int(time.time())}'
+
+
+def get_temp_schema_prefix(dataset: str) -> str:
+    return f'temp_{dataset}_'
+
+
+def get_friendly_temp_schema_creation_time(name: str) -> str:
+    t = time.gmtime(int(name.split('_')[-1]))
+    return time.strftime('%Y-%m-%d %H:%M:%S', t) + ' UTC'
+
+
+def get_temp_schemas(conn, dataset: str) -> List[str]:
+    prefix = get_temp_schema_prefix(dataset)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"SELECT schema_name from information_schema.schemata "
+            f"WHERE schema_name LIKE '{prefix}%'"
+        )
+        return [row[0] for row in cur.fetchall()]
 
 
 def get_dataset_tables() -> List[TableInfo]:
@@ -141,7 +165,7 @@ def main():
     slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
     ds.setup_db()
     conn = ds.db.conn
-    temp_schema = f"temp_{dataset}"
+    temp_schema = create_temp_schema_name(dataset)
     with create_and_enter_temporary_schema(conn, temp_schema):
         ds.db_import()
         drop_tables_if_they_exist(conn, tables, 'public')
