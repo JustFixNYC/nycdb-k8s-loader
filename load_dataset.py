@@ -1,11 +1,17 @@
 import os
 import sys
 import subprocess
+import contextlib
+import time
 from pathlib import Path
 from typing import NamedTuple, List
+from types import SimpleNamespace
 import urllib.parse
 import psycopg2
 import yaml
+import nycdb.dataset
+from nycdb.dataset import Dataset
+from nycdb.utility import list_wrap
 
 import slack
 
@@ -16,7 +22,6 @@ DATABASE_URL = os.environ['DATABASE_URL']
 USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
 DATASET = os.environ.get('DATASET', '')
 
-DATASETS_YML = NYCDB_DIR / 'nycdb' / 'datasets.yml'
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
 
@@ -27,15 +32,14 @@ DB_NAME = DB_INFO.path[1:]
 DB_USER = DB_INFO.username
 DB_PASSWORD = DB_INFO.password
 
-NYCDB_CMD = [
-    'nycdb',
-    '-D', DB_NAME,
-    '-H', DB_HOST,
-    '-U', DB_USER,
-    '-P', DB_PASSWORD,
-    '--port', str(DB_PORT),
-    '--root-dir', str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR),
-]
+NYCDB_ARGS = SimpleNamespace(
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    database=DB_NAME,
+    port=str(DB_PORT),
+    root_dir=str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR)
+)
 
 
 class TableInfo(NamedTuple):
@@ -43,16 +47,33 @@ class TableInfo(NamedTuple):
     dataset: str
 
 
-def get_dataset_tables(yaml_file: Path=DATASETS_YML) -> List[TableInfo]:
-    yml = yaml.load(yaml_file.read_text())
+def create_temp_schema_name(dataset: str) -> str:
+    return f'{get_temp_schema_prefix(dataset)}{int(time.time())}'
+
+
+def get_temp_schema_prefix(dataset: str) -> str:
+    return f'temp_{dataset}_'
+
+
+def get_friendly_temp_schema_creation_time(name: str) -> str:
+    t = time.gmtime(int(name.split('_')[-1]))
+    return time.strftime('%Y-%m-%d %H:%M:%S', t) + ' UTC'
+
+
+def get_temp_schemas(conn, dataset: str) -> List[str]:
+    prefix = get_temp_schema_prefix(dataset)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"SELECT schema_name from information_schema.schemata "
+            f"WHERE schema_name LIKE '{prefix}%'"
+        )
+        return [row[0] for row in cur.fetchall()]
+
+
+def get_dataset_tables() -> List[TableInfo]:
     result: List[TableInfo] = []
-    for dataset_name, info in yml.items():
-        schema = info['schema']
-        if isinstance(schema, dict):
-            schemas = [schema]
-        else:
-            schemas = schema
-        for schema in schemas:
+    for dataset_name, info in nycdb.dataset.datasets().items():
+         for schema in list_wrap(info['schema']):
             result.append(TableInfo(name=schema['table_name'], dataset=dataset_name))
     return result
 
@@ -68,20 +89,54 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
     return tables
 
 
-def drop_tables_if_they_exist(tables: List[TableInfo]):
-    with psycopg2.connect(DATABASE_URL) as conn:
+def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
+    with conn.cursor() as cur:
+        for table in tables:
+            name = f"{schema}.{table.name}"
+            print(f"Dropping table '{name}' if it exists.")
+            cur.execute(f"DROP TABLE IF EXISTS {name}")
+    conn.commit()
+
+
+@contextlib.contextmanager
+def create_and_enter_temporary_schema(conn, schema: str):
+    print(f"Creating and entering temporary schema '{schema}'.")
+    with conn.cursor() as cur:
+         cur.execute('; '.join([
+             f"DROP SCHEMA IF EXISTS {schema} CASCADE",
+             f"CREATE SCHEMA {schema}",
+             # Note that we still need public at the end of the search
+             # path since we want functions like first(), which are
+             # declared in the public schema, to work.
+             f"SET search_path TO {schema}, public"
+         ]))
+    conn.commit()
+
+    try:
+        yield
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        print(f"Destroying temporary schema '{schema}'.")
         with conn.cursor() as cur:
-            for table in tables:
-                print(f"Dropping table '{table.name}' if it exists.")
-                cur.execute(f"DROP TABLE IF EXISTS {table.name}")
+            cur.execute('; '.join([
+                f'DROP SCHEMA {schema} CASCADE',
+                f'SET search_path TO public'
+            ]))
+        conn.commit()
 
 
-def call_nycdb(*args: str):
-    subprocess.check_call(NYCDB_CMD + list(args))
+def change_table_schemas(conn, tables: List[TableInfo], from_schema: str, to_schema: str):
+    with conn.cursor() as cur:
+        for table in tables:
+            name = f"{from_schema}.{table.name}"
+            print(f"Setting table '{name}' schema to '{to_schema}'.")
+            cur.execute(f"ALTER TABLE {name} SET SCHEMA {to_schema}")
+    conn.commit()
 
 
 def sanity_check():
-    assert DATASETS_YML.exists()
     assert TEST_DATA_DIR.exists()
 
 
@@ -102,11 +157,19 @@ def main():
         dataset = sys.argv[1]
 
     tables = get_tables_for_dataset(dataset)
+    ds = Dataset(dataset, args=NYCDB_ARGS)
+
     slack.sendmsg(f'Downloading the dataset `{dataset}`...')
-    call_nycdb('--download', dataset)
+    ds.download_files()
+
     slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
-    drop_tables_if_they_exist(tables)
-    call_nycdb('--load', dataset)
+    ds.setup_db()
+    conn = ds.db.conn
+    temp_schema = create_temp_schema_name(dataset)
+    with create_and_enter_temporary_schema(conn, temp_schema):
+        ds.db_import()
+        drop_tables_if_they_exist(conn, tables, 'public')
+        change_table_schemas(conn, tables, temp_schema, 'public')
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 

@@ -1,6 +1,7 @@
-import subprocess
-from load_dataset import NYCDB_CMD
+from nycdb.cli import run_dbshell
+
+from load_dataset import NYCDB_ARGS
 
 
 if __name__ == '__main__':
-    subprocess.call(NYCDB_CMD + ['--dbshell'])
+    run_dbshell(NYCDB_ARGS)

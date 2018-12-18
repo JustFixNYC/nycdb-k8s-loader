@@ -19,6 +19,8 @@ import docopt
 import nycdb.datasets
 from nycdb.utility import list_wrap
 
+import load_dataset
+
 
 def get_tables_for_datasets(names: List[str]) -> List[str]:
     tables: List[str] = []
@@ -48,22 +50,34 @@ def validate_and_get_dataset_names(dsnames: List[str]) -> List[str]:
     return dataset_names
 
 
-def get_rowcounts(url: str, table_names: List[str]) -> Iterator[Tuple[str, int]]:
-    with psycopg2.connect(url) as conn:
-        with conn.cursor() as cur:
-            for table in table_names:
-                cur.execute(f'SELECT COUNT(*) FROM {table}')
-                count: int = cur.fetchone()[0]
-                yield table, count
+def get_rowcounts(conn, table_names: List[str], schema: str='public') -> Iterator[Tuple[str, int]]:
+    with conn.cursor() as cur:
+        for table in table_names:
+            cur.execute(f'SELECT COUNT(*) FROM {schema}.{table}')
+            count: int = cur.fetchone()[0]
+            yield table, count
+
+
+def print_rowcounts(conn, table_names: List[str], schema: str='public'):
+    for table, count in get_rowcounts(conn, table_names, schema=schema):
+        print(f"  {table} has {count:,} rows.")
 
 
 def main():
     args = docopt.docopt(__doc__)
     dataset_names = validate_and_get_dataset_names(args['<dataset>'])
-    tables = get_tables_for_datasets(dataset_names)
 
-    for table, count in get_rowcounts(os.environ['DATABASE_URL'], tables):
-        print(f"{table} has {count:,} rows.")
+    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
+        for dataset in dataset_names:
+            tables = get_tables_for_datasets([dataset])
+            schemas = load_dataset.get_temp_schemas(conn, dataset)
+            for schema in schemas:
+                ts = load_dataset.get_friendly_temp_schema_creation_time(schema)
+                print(f"For {dataset}'s temporary schema created on {ts}:\n")
+                print_rowcounts(conn, tables, schema=schema)
+                print()
+            print(f"For {dataset}'s public schema:\n")
+            print_rowcounts(conn, tables)
 
 
 if __name__ == '__main__':
