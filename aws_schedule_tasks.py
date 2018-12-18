@@ -2,31 +2,39 @@
 Create scheduled tasks to populate NYC-DB tables.
 
 Usage:
-  aws_schedule_tasks.py create <cluster-name> [--use-test-data]
-  aws_schedule_tasks.py delete
+  aws_schedule_tasks.py create <cluster-name>
+    [--task-prefix=<prefix>]
+    [--task-definition=<name>]
+    [--ecs-events-role=<role>]
+    [--use-test-data]
+
+  aws_schedule_tasks.py delete [--task-prefix=<prefix>]
 
 Options:
-  -h --help     Show this screen.
+  -h --help                 Show this screen.
+  --task-prefix=<prefix>    The prefix to prepend all scheduled task
+                            names/rules with. This will be followed
+                            by the dataset name [default: nycdb-load-].
+  --task-definition=<name>  The name of the pre-existing ECS task
+                            definition to load NYC-DB datasets. It
+                            should have a single container that has
+                            all environment variables pre-filled
+                            except for DATASET and USE_TEST_DATA
+                            [default: nycdb-k8s-loader].
+  --ecs-events-role=<role>  The pre-existing IAM role that allows
+                            CloudWatch events to start ECS tasks
+                            [default: ecsEventsRole].
+  --use-test-data           Make the dataset loading tasks
+                            load small test datasets instead of the
+                            real thing.
+  <cluster-name>            The name of the pre-existing ECS
+                            cluster that the scheduled tasks will
+                            be in.
 
 Environment variables:
   AWS_ACCESS_KEY_ID      Your AWS access key ID.
   AWS_SECRET_ACCESS_KEY  Your AWS secret access key.
-
-This tool currently has a lot of limitations, as it
-expects the following to already be set up for it:
-
-  * an ECS cluster, passed in via the command-line.
-  * an IAM role allowing CloudWatch events to start
-    ECS tasks, specified by the ECS_EVENTS_ROLE
-    constant in this script.
-  * a task definition, with a single container that
-    has all environment variables pre-filled except
-    for DATASET and USE_TEST_DATA. The name of the task
-    is specified by TASK_DEFINITION_NAME in this script.
-
-In other words, this tool is only responsible for
-managing CloudWatch rules to schedule the dataset-loading
-tasks; everything else should already exist.
+  AWS_DEFAULT_REGION     The AWS region to use.
 """
 
 import sys
@@ -41,19 +49,6 @@ dotenv.load_dotenv()
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = list(nycdb.datasets.datasets().keys())
-
-# The AWS region to use.
-REGION_NAME = 'us-east-1'
-
-# The prefix of the rules we'll create (one per dataset).
-PREFIX = "nycdb-load-"
-
-# The IAM role that allows CloudWatch events to start
-# ECS tasks.
-ECS_EVENTS_ROLE = 'ecsEventsRole'
-
-# The name of the ECS task definition to load NYC-DB datasets.
-TASK_DEFINITION_NAME = 'nycdb-k8s-loader'
 
 # Various schedule expressions.
 #
@@ -104,13 +99,13 @@ def create_input_str(container_name: str, dataset: str, use_test_data: bool):
     })
 
 
-def delete_tasks():
+def delete_tasks(prefix: str):
     '''
-    Delete the scheduled tasks, if they exist.
+    Delete the scheduled tasks with the given prefix, if they exist.
     '''
 
     client = boto3.client('events')
-    response = client.list_rules(NamePrefix=PREFIX)
+    response = client.list_rules(NamePrefix=prefix)
     for rule in response['Rules']:
         name = rule['Name']
         targets = client.list_targets_by_rule(Rule=name)['Targets']
@@ -122,6 +117,7 @@ def delete_tasks():
 
 
 def create_task(
+    prefix: str,
     dataset: str,
     use_test_data: bool,
     role_arn: str,
@@ -134,7 +130,7 @@ def create_task(
     Create a scheduled task for the given dataset.
     '''
 
-    name = f"{PREFIX}{dataset}"
+    name = f"{prefix}{dataset}"
     schedule_expression = DATASET_SCHEDULES.get(dataset, DEFAULT_SCHEDULE_EXPRESSION)
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
@@ -178,14 +174,15 @@ def create_task(
     )
 
 
-def create_tasks(args):
+def create_tasks(prefix: str, args):
     '''
     Create or update the scheduled tasks.
     '''
 
-    print(f"Obtaining ARN for role '{ECS_EVENTS_ROLE}'")
+    ecs_events_role: str = args['--ecs-events-role']
+    print(f"Obtaining ARN for role '{ecs_events_role}'")
     iam = boto3.client('iam')
-    role_arn = iam.get_role(RoleName=ECS_EVENTS_ROLE)['Role']['Arn']
+    role_arn = iam.get_role(RoleName=ecs_events_role)['Role']['Arn']
 
     cluster_name: str = args['<cluster-name>']
     print(f"Obtaining cluster information for {cluster_name}.")
@@ -203,17 +200,21 @@ def create_tasks(args):
     subnet: str = list(vpc.subnets.all())[0].id
     print(f"Found VPC {vpc.id} and subnet {subnet}.")
 
-    print(f"Obtaining task definition for {TASK_DEFINITION_NAME}.")
+    task_definition: str = args['--task-definition']
+    print(f"Obtaining task definition for {task_definition}.")
     task = ecs.describe_task_definition(
-        taskDefinition=TASK_DEFINITION_NAME)['taskDefinition']
+        taskDefinition=task_definition)['taskDefinition']
     task_arn = task['taskDefinitionArn']
     container_name = task['containerDefinitions'][0]['name']
     print(f"Found {task_arn} with container {container_name}.")
 
+    use_test_data: bool = args['--use-test-data']
+
     for dataset in DATASET_NAMES:
         create_task(
+            prefix=prefix,
             dataset=dataset,
-            use_test_data=args['--use-test-data'],
+            use_test_data=use_test_data,
             role_arn=role_arn,
             cluster_arn=cluster_arn,
             task_arn=task_arn,
@@ -231,13 +232,12 @@ def main():
     sanity_check()
 
     args = docopt.docopt(__doc__)
-
-    boto3.setup_default_session(region_name=REGION_NAME)
+    prefix: str = args['--task-prefix']
 
     if args['create']:
-        create_tasks(args)
+        create_tasks(prefix, args)
     elif args['delete']:
-        delete_tasks()
+        delete_tasks(prefix)
 
 
 if __name__ == '__main__':
