@@ -76,6 +76,7 @@ def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
 
 @contextlib.contextmanager
 def create_and_enter_temporary_schema(conn, schema: str):
+    print(f"Creating and entering temporary schema '{schema}'.")
     with conn.cursor() as cur:
          cur.execute('; '.join([
              f"DROP SCHEMA IF EXISTS {schema} CASCADE",
@@ -93,6 +94,7 @@ def create_and_enter_temporary_schema(conn, schema: str):
         conn.rollback()
         raise e
     finally:
+        print(f"Destroying temporary schema '{schema}'.")
         with conn.cursor() as cur:
             cur.execute('; '.join([
                 f'DROP SCHEMA {schema} CASCADE',

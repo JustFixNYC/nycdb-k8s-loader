@@ -70,6 +70,7 @@ def sendmsg(text: str, is_safe=False) -> bool:
     Returns True if the message was successfully sent, False otherwise.
     '''
 
+    print(text)
     if not is_safe:
         text = escape(text)
     return send_payload({'text': text})
