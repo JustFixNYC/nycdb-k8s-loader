@@ -25,8 +25,7 @@ expects the following to already be set up for it:
   * a task definition, with a single container that
     has all environment variables pre-filled except
     for DATASET and USE_TEST_DATA. The name of the task
-    and container are specified by TASK_DEFINITION_NAME
-    and CONTAINER_NAME in this script, respectively.
+    is specified by TASK_DEFINITION_NAME in this script.
 
 In other words, this tool is only responsible for
 managing CloudWatch rules to schedule the dataset-loading
@@ -59,10 +58,6 @@ ECS_EVENTS_ROLE = 'ecsEventsRole'
 # The name of the ECS task definition to load NYC-DB datasets.
 TASK_DEFINITION_NAME = 'nycdb-k8s-loader'
 
-# The name of the container within the ECS task definition
-# that is responsible for loading NYC-DB datasets.
-CONTAINER_NAME = 'nycdb-k8s-loader'
-
 # Various schedule expressions.
 #
 # Because Amazon uses a weird cron format without any way to
@@ -91,16 +86,16 @@ DATASET_SCHEDULES: Dict[str, str] = {
 }
 
 
-def create_input_str(dataset: str, use_test_data: bool):
+def create_input_str(container_name: str, dataset: str, use_test_data: bool):
     '''
     Create the JSON-encoded input string that specifies
-    the environment variables to pass to the dataset-loading
+    the environment variables to pass to the given dataset-loading
     container.
     '''
 
     return json.dumps({
         'containerOverrides': [{
-            'name': CONTAINER_NAME,
+            'name': container_name,
             'environment': [{
                 'name': 'DATASET',
                 'value': dataset
@@ -144,6 +139,7 @@ def create_task(
     role_arn: str,
     cluster_arn: str,
     task_arn: str,
+    container_name: str,
     subnet: str
 ):
     '''
@@ -164,7 +160,11 @@ def create_task(
     )
 
     target_id = dataset
-    input_str = create_input_str(dataset=dataset, use_test_data=use_test_data)
+    input_str = create_input_str(
+        container_name=container_name,
+        dataset=dataset,
+        use_test_data=use_test_data
+    )
     print(f"Creating target '{target_id}'.")
     client.put_targets(
         Rule=name,
@@ -209,9 +209,11 @@ def create_tasks(args):
     print(f"Found cluster {cluster_arn}.")
 
     print(f"Obtaining task definition for {TASK_DEFINITION_NAME}.")
-    task_arn = ecs.describe_task_definition(
-        taskDefinition=TASK_DEFINITION_NAME)['taskDefinition']['taskDefinitionArn']
-    print(f"Found {task_arn}.")
+    task = ecs.describe_task_definition(
+        taskDefinition=TASK_DEFINITION_NAME)['taskDefinition']
+    task_arn = task['taskDefinitionArn']
+    container_name = task['containerDefinitions'][0]['name']
+    print(f"Found {task_arn} with container {container_name}.")
 
     # TODO: Ideally we should also allow the VPC/subnet name to be passed in
     # as a command-line argument, rather than simply using the first one
@@ -228,6 +230,7 @@ def create_tasks(args):
             role_arn=role_arn,
             cluster_arn=cluster_arn,
             task_arn=task_arn,
+            container_name=container_name,
             subnet=subnet
         )
 
