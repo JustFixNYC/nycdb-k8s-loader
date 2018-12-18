@@ -1,10 +1,12 @@
 import os
 import time
 import subprocess
+from typing import Dict
 import psycopg2
 import urllib.parse
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import pytest
+import nycdb.datasets
 
 import load_dataset
 import show_rowcounts
@@ -74,33 +76,39 @@ def test_db_env(db):
     yield env
 
 
-def drop_table(name: str):
+def drop_dataset_tables(dataset: str, ok_if_nonexistent: bool):
     with psycopg2.connect(**CONNECT_ARGS) as conn:
         with conn.cursor() as cur:
-            cur.execute(f'DROP TABLE IF EXISTS {name}')
+            for table in load_dataset.get_tables_for_dataset(dataset):
+                if_exists = 'IF EXISTS' if ok_if_nonexistent else ''
+                cur.execute(f'DROP TABLE {if_exists} {table.name}')
 
 
-def get_row_count(table_name: str) -> int:
-    counts = dict(show_rowcounts.get_rowcounts(DATABASE_URL, [table_name]))
-    return counts[table_name]
+def get_row_counts(dataset: str) -> Dict[str, int]:
+    tables = [table.name for table in load_dataset.get_tables_for_dataset(dataset)]
+    return dict(show_rowcounts.get_rowcounts(DATABASE_URL, tables))
 
 
-def test_load_dataset_works(test_db_env):
-    drop_table('hpd_registrations')
-
-    subprocess.check_call([
-        'python', 'load_dataset.py', 'hpd_registrations'
-    ], env=test_db_env)
-
-    count = get_row_count('hpd_registrations')
-
-    assert count > 0
+@pytest.mark.parametrize('dataset', nycdb.dataset.datasets().keys())
+def test_load_dataset_works(test_db_env, dataset):
+    drop_dataset_tables(dataset, ok_if_nonexistent=True)
 
     subprocess.check_call([
-        'python', 'load_dataset.py', 'hpd_registrations'
+        'python', 'load_dataset.py', dataset
     ], env=test_db_env)
 
-    assert get_row_count('hpd_registrations') == count
+    table_counts = get_row_counts(dataset)
+    for count in table_counts.values():
+        assert count > 0
+
+    # Ensure idempotency.
+
+    subprocess.check_call([
+        'python', 'load_dataset.py', dataset
+    ], env=test_db_env)
+
+    assert get_row_counts(dataset) == table_counts
+    drop_dataset_tables(dataset, ok_if_nonexistent=False)
 
 
 def test_load_dataset_fails_if_no_dataset_provided(test_db_env):
