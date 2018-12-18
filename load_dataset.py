@@ -89,6 +89,9 @@ def create_and_enter_temporary_schema(conn, schema: str):
 
     try:
         yield
+    except Exception as e:
+        conn.rollback()
+        raise e
     finally:
         with conn.cursor() as cur:
             cur.execute('; '.join([
