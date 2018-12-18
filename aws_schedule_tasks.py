@@ -2,7 +2,7 @@
 Create scheduled tasks to populate NYC-DB tables.
 
 Usage:
-  aws_schedule_tasks.py create [--use-test-data]
+  aws_schedule_tasks.py create <cluster-name> [--use-test-data]
   aws_schedule_tasks.py delete
 
 Options:
@@ -15,13 +15,10 @@ Environment variables:
 This tool currently has a lot of limitations, as it
 expects the following to already be set up for it:
 
+  * an ECS cluster, passed in via the command-line.
   * an IAM role allowing CloudWatch events to start
     ECS tasks, specified by the ECS_EVENTS_ROLE
     constant in this script.
-  * an ECS cluster (it currently simply uses the first
-    cluster it finds).
-  * a VPC with a subnet for the ECS task (it currently
-    simply uses the first VPC it finds).
   * a task definition, with a single container that
     has all environment variables pre-filled except
     for DATASET and USE_TEST_DATA. The name of the task
@@ -124,15 +121,6 @@ def delete_tasks():
         client.delete_rule(Name=name)
 
 
-def find_subnet() -> str:
-    ec2 = boto3.resource('ec2')
-    for vpc in ec2.vpcs.all():
-        for subnet in vpc.subnets.all():
-            return subnet.id
-
-    raise AssertionError("No subnets found!")
-
-
 def create_task(
     dataset: str,
     use_test_data: bool,
@@ -199,14 +187,21 @@ def create_tasks(args):
     iam = boto3.client('iam')
     role_arn = iam.get_role(RoleName=ECS_EVENTS_ROLE)['Role']['Arn']
 
-    # TODO: Ideally we should also allow the cluster name to be passed in
-    # as a command-line argument, rather than simply using the first one
-    # we find.
-
-    print(f"Obtaining cluster information.")
+    cluster_name: str = args['<cluster-name>']
+    print(f"Obtaining cluster information for {cluster_name}.")
     ecs = boto3.client('ecs')
-    cluster_arn = ecs.list_clusters()['clusterArns'][0]
+    clusters = ecs.describe_clusters(clusters=[cluster_name])
+    cluster_arn: str = clusters['clusters'][0]['clusterArn']
     print(f"Found cluster {cluster_arn}.")
+
+    print(f"Obtaining VPC and subnet info for cluster {cluster_name}.")
+    ec2 = boto3.resource('ec2')
+    vpc = list(ec2.vpcs.filter(Filters=[{
+        'Name': 'tag:Name',
+        'Values': [f'ECS {cluster_name} - VPC']
+    }]).all())[0]
+    subnet: str = list(vpc.subnets.all())[0].id
+    print(f"Found VPC {vpc.id} and subnet {subnet}.")
 
     print(f"Obtaining task definition for {TASK_DEFINITION_NAME}.")
     task = ecs.describe_task_definition(
@@ -214,14 +209,6 @@ def create_tasks(args):
     task_arn = task['taskDefinitionArn']
     container_name = task['containerDefinitions'][0]['name']
     print(f"Found {task_arn} with container {container_name}.")
-
-    # TODO: Ideally we should also allow the VPC/subnet name to be passed in
-    # as a command-line argument, rather than simply using the first one
-    # we find.
-
-    print(f"Obtaining subnet information.")
-    subnet = find_subnet()
-    print(f"Found subnet {subnet}.")
 
     for dataset in DATASET_NAMES:
         create_task(
