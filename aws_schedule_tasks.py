@@ -50,16 +50,14 @@ dotenv.load_dotenv()
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = list(nycdb.datasets.datasets().keys())
 
-# Various schedule expressions.
-#
-# Because Amazon uses a weird cron format without any way to
-# convert them into plain language, who knows if these are correct.
+# Various schedule expressions. Note that all times must be specified
+# in UTC.
 #
 # For more details on schedule expressions, see:
 #
 # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-DAILY = 'cron(0 0 * * ? *)'     # Daily at midnight, I think?
-MONTHLY = 'cron(0 0 1 * ? *)'   # The first of every month at midnight, maybe?
+DAILY = 'cron(0 5 * * ? *)'     # Daily at around midnight EST.
+MONTHLY = 'cron(0 5 1 * ? *)'   # The first of every month around midnight EST.
 YEARLY = 'rate(365 days)'
 
 # The default schedule expression for a dataset loader, if
