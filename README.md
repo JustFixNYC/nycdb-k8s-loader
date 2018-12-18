@@ -155,6 +155,19 @@ To run the test suite, run:
 docker-compose run app pytest
 ```
 
+## Updating the NYC-DB version
+
+At present, the revision of NYC-DB's Python library is pulled directly
+from GitHub via a commit hash.  At the time of this writing, that
+commit hash is specified with the [`Dockerfile`'s `NYCDB_REV` argument][rev].
+
+To update the revision for anyone who is using the
+[`justfixnyc/nycdb-k8s-loader:latest`][] image off Docker Hub, issue a PR
+that changes the default value of the aforementioned `NYCDB_REV` argument.
+Our continuous integration system will then ensure that everything still
+works, and once the PR is merged into `master`, Docker Hub will re-publish
+a new container image that uses the latest version of NYC-DB.
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
@@ -164,3 +177,4 @@ docker-compose run app pytest
 [`justfixnyc/nycdb-k8s-loader:latest`]: https://hub.docker.com/r/justfixnyc/nycdb-k8s-loader
 [aws/amazon-ecs-agent#1128]: https://github.com/aws/amazon-ecs-agent/issues/1128#issuecomment-351545461
 [Scheduled Tasks]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html
+[rev]: https://github.com/JustFixNYC/nycdb-k8s-loader/blob/master/Dockerfile#L19
