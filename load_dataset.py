@@ -14,6 +14,7 @@ from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
 
 import slack
+import db_perms
 
 
 NYCDB_DIR = Path('/nyc-db/src')
@@ -99,6 +100,37 @@ def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
 
 
 @contextlib.contextmanager
+def save_and_reapply_permissions(conn, tables: List[TableInfo], schema: str):
+    '''
+    Holy hell this is annoying. See this issue for details:
+    https://github.com/JustFixNYC/nycdb-k8s-loader/issues/5
+    '''
+
+    # Create blank placeholder tables if they don't already exist,
+    # so that any users with default privileges in our schema
+    # have expected permissions on them.
+    create_blank_tables = ';'.join([
+        f'CREATE TABLE IF NOT EXISTS {schema}.{table.name} ()'
+        for table in tables
+    ])
+    with conn.cursor() as cur:
+        cur.execute(create_blank_tables)
+    conn.commit()
+
+    # Now remember the permissions on the tables.
+    grants = ''.join(db_perms.get_grant_sql(conn, table.name, schema)
+                     for table in tables)
+
+    # Let the code inside our "with" clause run. It will likely
+    # drop the tables and replace them with new ones that have
+    # the same name.
+    yield
+
+    # Now grant the same permissions to the new tables.
+    db_perms.exec_grant_sql(conn, grants)
+
+
+@contextlib.contextmanager
 def create_and_enter_temporary_schema(conn, schema: str):
     print(f"Creating and entering temporary schema '{schema}'.")
     with conn.cursor() as cur:
@@ -168,8 +200,9 @@ def main():
     temp_schema = create_temp_schema_name(dataset)
     with create_and_enter_temporary_schema(conn, temp_schema):
         ds.db_import()
-        drop_tables_if_they_exist(conn, tables, 'public')
-        change_table_schemas(conn, tables, temp_schema, 'public')
+        with save_and_reapply_permissions(conn, tables, 'public'):
+            drop_tables_if_they_exist(conn, tables, 'public')
+            change_table_schemas(conn, tables, temp_schema, 'public')
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
