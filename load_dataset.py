@@ -192,7 +192,7 @@ def load_dataset(dataset: str):
     print("Success!")
 
 
-def main():
+def main(argv: List[str]=sys.argv):
     sanity_check()
 
     NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -201,12 +201,13 @@ def main():
 
     dataset = DATASET
 
+    if len(argv) > 1:
+        dataset = argv[1]
+
     if not dataset:
-        if len(sys.argv) <= 1:
-            print(f"Usage: {sys.argv[0]} <dataset>")
-            print(f"Alternatively, set the DATASET environment variable.")
-            sys.exit(1)
-        dataset = sys.argv[1]
+        print(f"Usage: {argv[0]} <dataset>")
+        print(f"Alternatively, set the DATASET environment variable.")
+        sys.exit(1)
 
     try:
         load_dataset(dataset)
