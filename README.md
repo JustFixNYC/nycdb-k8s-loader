@@ -142,6 +142,29 @@ which supports scheduled tasks. Here are some guidelines:
 To create scheduled tasks for loading each dataset on a regular basis,
 see [`aws_schedule_tasks.py`](aws_schedule_tasks.py).
 
+## Deployment: other systems
+
+The container can be configured through environment variables,
+so take a look at the [`.env.example`](.env.example) file for
+documentation on all of them.
+
+## How it works
+
+The loader works by creating a temporary [Postgres schema][]
+for a dataset, and loading the dataset into that schema, which
+could take a long time. Using the temporary schema ensures that
+users can still make queries to the public schema (if one exists)
+while the new version of the dataset is being loaded.
+
+Once the dataset has been loaded into the temporary schema,
+the loader drops the dataset's tables from the public schema
+and moves the temporary schema's tables into the public schema.
+
+The loader also tries to ensure that users have the same
+permissions to the new tables in the public schema that they
+had to the old tables. However, you should probably verify
+this manually.
+
 ## Querying load status
 
 If you want to get an idea of how loading is going without viewing logs,
@@ -178,3 +201,4 @@ a new container image that uses the latest version of NYC-DB.
 [aws/amazon-ecs-agent#1128]: https://github.com/aws/amazon-ecs-agent/issues/1128#issuecomment-351545461
 [Scheduled Tasks]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html
 [rev]: https://github.com/JustFixNYC/nycdb-k8s-loader/blob/master/Dockerfile#L19
+[Postgres schema]: https://www.postgresql.org/docs/9.5/ddl-schemas.html
