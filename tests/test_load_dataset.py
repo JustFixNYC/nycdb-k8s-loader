@@ -89,3 +89,8 @@ def test_get_temp_schemas_works(test_db_env, conn):
                 'temp_boop_1234'
             ]
         assert len(load_dataset.get_temp_schemas(conn, 'boop')) == 0
+
+
+def test_exceptions_send_slack_msg():
+    # TODO: Finish this.
+    pass

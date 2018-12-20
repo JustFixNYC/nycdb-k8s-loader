@@ -172,22 +172,7 @@ def sanity_check():
     assert TEST_DATA_DIR.exists()
 
 
-def main():
-    sanity_check()
-
-    NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-    tables = get_dataset_tables()
-
-    dataset = DATASET
-
-    if not dataset:
-        if len(sys.argv) <= 1:
-            print(f"Usage: {sys.argv[0]} <dataset>")
-            print(f"Alternatively, set the DATASET environment variable.")
-            sys.exit(1)
-        dataset = sys.argv[1]
-
+def load_dataset(dataset: str):
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=NYCDB_ARGS)
 
@@ -205,6 +190,29 @@ def main():
             change_table_schemas(conn, tables, temp_schema, 'public')
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
+
+
+def main():
+    sanity_check()
+
+    NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    tables = get_dataset_tables()
+
+    dataset = DATASET
+
+    if not dataset:
+        if len(sys.argv) <= 1:
+            print(f"Usage: {sys.argv[0]} <dataset>")
+            print(f"Alternatively, set the DATASET environment variable.")
+            sys.exit(1)
+        dataset = sys.argv[1]
+
+    try:
+        load_dataset(dataset)
+    except Exception as e:
+        slack.sendmsg(f"Alas, an error occurred when loading the dataset `{dataset}`.")
+        raise e
 
 
 if __name__ == '__main__':
