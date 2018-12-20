@@ -89,3 +89,15 @@ def test_get_temp_schemas_works(test_db_env, conn):
                 'temp_boop_1234'
             ]
         assert len(load_dataset.get_temp_schemas(conn, 'boop')) == 0
+
+
+def test_exceptions_send_slack_msg():
+    with patch.object(load_dataset, 'load_dataset') as load:
+        with patch.object(load_dataset.slack, 'sendmsg') as sendmsg:
+            load.side_effect = Exception('blah')
+            with pytest.raises(Exception, match='blah'):
+                load_dataset.main(['', 'hpd_registrations'])
+            load.assert_called_once_with('hpd_registrations')
+            sendmsg.assert_called_once_with(
+                'Alas, an error occurred when loading the dataset `hpd_registrations`.'
+            )
