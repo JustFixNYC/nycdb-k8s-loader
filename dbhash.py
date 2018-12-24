@@ -33,7 +33,9 @@ class AbstractDbHash(abc.ABC):
 
 
 class DictDbHash(AbstractDbHash):
-    def __init__(self, d: Dict[str, str]):
+    def __init__(self, d: Optional[Dict[str, str]]=None):
+        if d is None:
+            d = {}
         self.d = d
 
     def get(self, key: str) -> Optional[str]:

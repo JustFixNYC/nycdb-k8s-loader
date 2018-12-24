@@ -50,8 +50,12 @@ def test_sqlite_sqldbhash():
     dbfile.unlink()
 
 
-def test_dictdbhash():
+def test_dictdbhash_impl():
     _test_dbhash_implementation(DictDbHash({}))
+
+
+def test_dictdbhash_defaults_to_empty_dict():
+    assert DictDbHash().d == {}
 
 
 def test_postgres_sqldbhash(conn):
