@@ -1,10 +1,7 @@
-from typing import Optional, NamedTuple, TypeVar, Type, Dict, List
+from typing import Optional, NamedTuple, TypeVar, Type, Dict, List, Mapping
 import requests
 
 from dbhash import AbstractDbHash
-
-
-T = TypeVar('T', bound='LastmodInfo')
 
 
 class LastmodInfo(NamedTuple):
@@ -12,9 +9,9 @@ class LastmodInfo(NamedTuple):
     etag: Optional[str] = None
     last_modified: Optional[str] = None
 
-    @classmethod
-    def read_from_dbhash(cls: Type[T], url: str, dbhash: AbstractDbHash) -> T:
-        return cls(
+    @staticmethod
+    def read_from_dbhash(url: str, dbhash: AbstractDbHash) -> 'LastmodInfo':
+        return LastmodInfo(
             url=url,
             etag=dbhash.get(f'etag:{url}'),
             last_modified=dbhash.get(f'last_modified:{url}')
@@ -24,9 +21,9 @@ class LastmodInfo(NamedTuple):
         dbhash.set_or_delete(f'last_modified:{self.url}', self.last_modified)
         dbhash.set_or_delete(f'etag:{self.url}', self.etag)
 
-    @classmethod
-    def from_response_headers(cls: Type[T], url: str, headers: Dict[str, str]) -> T:
-        return cls(
+    @staticmethod
+    def from_response_headers(url: str, headers: Mapping[str, str]) -> 'LastmodInfo':
+        return LastmodInfo(
             url=url,
             etag=headers.get('ETag'),
             last_modified=headers.get('Last-Modified')
@@ -46,7 +43,7 @@ class UrlModTracker:
 
     def __init__(self, urls: List[str], dbhash: AbstractDbHash):
         self.urls = urls
-        self.dbhash = AbstractDbHash
+        self.dbhash = dbhash
         self.updated_lastmods = []
 
     def did_any_urls_change(self) -> bool:
@@ -63,5 +60,5 @@ class UrlModTracker:
         return len(self.updated_lastmods) > 0
 
     def update_lastmods(self) -> None:
-        for lminfo in self.update_lastmods:
+        for lminfo in self.updated_lastmods:
             lminfo.write_to_dbhash(self.dbhash)
