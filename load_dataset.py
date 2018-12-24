@@ -15,6 +15,8 @@ from nycdb.utility import list_wrap
 
 import slack
 import db_perms
+from lastmod import UrlModTracker
+from dbhash import SqlDbHash
 
 
 NYCDB_DIR = Path('/nyc-db/src')
@@ -136,6 +138,12 @@ def save_and_reapply_permissions(conn, tables: List[TableInfo], schema: str):
     db_perms.exec_grant_sql(conn, grants)
 
 
+def ensure_schema_exists(conn, schema: str):
+    with conn.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+    conn.commit()
+
+
 @contextlib.contextmanager
 def create_and_enter_temporary_schema(conn, schema: str):
     print(f"Creating and entering temporary schema '{schema}'.")
@@ -180,21 +188,29 @@ def sanity_check():
 
 def load_dataset(dataset: str):
     tables = get_tables_for_dataset(dataset)
-    urls = get_urls_for_dataset(dataset)
     ds = Dataset(dataset, args=NYCDB_ARGS)
+    ds.setup_db()
+    conn = ds.db.conn
+
+    ensure_schema_exists(conn, 'nycdb_k8s_loader')
+    dbhash = SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
+    modtracker = UrlModTracker(get_urls_for_dataset(dataset), dbhash)
+
+    if not USE_TEST_DATA and not modtracker.did_any_urls_change():
+        slack.sendmsg(f'The dataset `{dataset}` has not changed since we last retrieved it.')
+        return
 
     slack.sendmsg(f'Downloading the dataset `{dataset}`...')
     ds.download_files()
 
     slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
-    ds.setup_db()
-    conn = ds.db.conn
     temp_schema = create_temp_schema_name(dataset)
     with create_and_enter_temporary_schema(conn, temp_schema):
         ds.db_import()
         with save_and_reapply_permissions(conn, tables, 'public'):
             drop_tables_if_they_exist(conn, tables, 'public')
             change_table_schemas(conn, tables, temp_schema, 'public')
+    modtracker.update_lastmods()
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
