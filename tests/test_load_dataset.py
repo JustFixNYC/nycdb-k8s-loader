@@ -34,6 +34,13 @@ def get_row_counts(conn, dataset: str) -> Dict[str, int]:
     return dict(show_rowcounts.get_rowcounts(conn, tables))
 
 
+def test_get_urls_for_dataset_works():
+    urls = load_dataset.get_urls_for_dataset('hpd_registrations')
+    assert len(urls) > 0
+    for url in urls:
+        assert url.startswith('https://')
+
+
 @pytest.mark.parametrize('dataset', nycdb.dataset.datasets().keys())
 def test_load_dataset_works(test_db_env, dataset):
     with make_conn() as conn:

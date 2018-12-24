@@ -90,6 +90,12 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
     return tables
 
 
+def get_urls_for_dataset(dataset: str) -> List[str]:
+    return [
+        fileinfo['url'] for fileinfo in nycdb.dataset.datasets()[dataset]['files']
+    ]
+
+
 def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
     with conn.cursor() as cur:
         for table in tables:
@@ -174,6 +180,7 @@ def sanity_check():
 
 def load_dataset(dataset: str):
     tables = get_tables_for_dataset(dataset)
+    urls = get_urls_for_dataset(dataset)
     ds = Dataset(dataset, args=NYCDB_ARGS)
 
     slack.sendmsg(f'Downloading the dataset `{dataset}`...')
