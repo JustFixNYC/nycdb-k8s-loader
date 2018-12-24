@@ -49,6 +49,7 @@ class UrlModTracker:
     def did_any_urls_change(self) -> bool:
         self.updated_lastmods = []
         for url in self.urls:
+            print(f"Checking {url}...")
             lminfo = LastmodInfo.read_from_dbhash(url, self.dbhash)
             res = requests.get(url, headers=lminfo.to_request_headers(), stream=True)
             if res.status_code == 200:
