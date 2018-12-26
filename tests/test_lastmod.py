@@ -1,4 +1,6 @@
-from lastmod import LastmodInfo
+import pytest
+
+from lastmod import LastmodInfo, UrlModTracker
 from dbhash import DictDbHash
 
 
@@ -38,3 +40,29 @@ class TestLastmodInfo:
             'If-None-Match': 'blah',
             'If-Modified-Since': 'flarg'
         }
+
+
+class TestUrlModTracker:
+    def setup(self):
+        self.dbh = DictDbHash()
+
+    def test_it_updates_lastmods(self, requests_mock):
+        requests_mock.get('https://boop', text='blah', headers={'ETag': 'blah'})
+        mt = UrlModTracker(['https://boop'], self.dbh)
+        assert mt.did_any_urls_change() is True
+        assert self.dbh.d == {}
+
+        mt.update_lastmods()
+        assert self.dbh.d == {'etag:https://boop': 'blah'}
+
+    def test_it_reports_unchanged_urls(self, requests_mock):
+        mt = UrlModTracker(['https://boop'], DictDbHash({'etag:https://boop': 'blah'}))
+        requests_mock.get('https://boop', request_headers={'If-None-Match': 'blah'}, status_code=304)
+        assert mt.did_any_urls_change() is False
+
+    def test_it_raises_on_bad_http_responses(self, requests_mock):
+        mt = UrlModTracker(['https://boop'], self.dbh)
+        requests_mock.get('https://boop', status_code=500)
+
+        with pytest.raises(Exception, match='500 Server Error'):
+            mt.did_any_urls_change()
