@@ -15,32 +15,36 @@ from nycdb.utility import list_wrap
 
 import slack
 import db_perms
+from lastmod import UrlModTracker
+from dbhash import SqlDbHash
 
 
 NYCDB_DIR = Path('/nyc-db/src')
-
-DATABASE_URL = os.environ['DATABASE_URL']
-USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
-DATASET = os.environ.get('DATASET', '')
-
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
 
-DB_INFO = urllib.parse.urlparse(DATABASE_URL)
-DB_PORT = DB_INFO.port or 5432
-DB_HOST = DB_INFO.hostname
-DB_NAME = DB_INFO.path[1:]
-DB_USER = DB_INFO.username
-DB_PASSWORD = DB_INFO.password
 
-NYCDB_ARGS = SimpleNamespace(
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    database=DB_NAME,
-    port=str(DB_PORT),
-    root_dir=str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR)
-)
+class Config(NamedTuple):
+    database_url: str = os.environ['DATABASE_URL']
+    use_test_data: bool = bool(os.environ.get('USE_TEST_DATA', ''))
+
+    @property
+    def nycdb_args(self):
+        DB_INFO = urllib.parse.urlparse(self.database_url)
+        DB_PORT = DB_INFO.port or 5432
+        DB_HOST = DB_INFO.hostname
+        DB_NAME = DB_INFO.path[1:]
+        DB_USER = DB_INFO.username
+        DB_PASSWORD = DB_INFO.password
+
+        return SimpleNamespace(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            database=DB_NAME,
+            port=str(DB_PORT),
+            root_dir=str(TEST_DATA_DIR) if self.use_test_data else str(NYCDB_DATA_DIR)
+        )
 
 
 class TableInfo(NamedTuple):
@@ -90,6 +94,12 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
     return tables
 
 
+def get_urls_for_dataset(dataset: str) -> List[str]:
+    return [
+        fileinfo['url'] for fileinfo in nycdb.dataset.datasets()[dataset]['files']
+    ]
+
+
 def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
     with conn.cursor() as cur:
         for table in tables:
@@ -128,6 +138,12 @@ def save_and_reapply_permissions(conn, tables: List[TableInfo], schema: str):
 
     # Now grant the same permissions to the new tables.
     db_perms.exec_grant_sql(conn, grants)
+
+
+def ensure_schema_exists(conn, schema: str):
+    with conn.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+    conn.commit()
 
 
 @contextlib.contextmanager
@@ -172,22 +188,40 @@ def sanity_check():
     assert TEST_DATA_DIR.exists()
 
 
-def load_dataset(dataset: str):
+def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=False):
+    '''
+    Load the given dataset using the given configuration.
+
+    Note that `force_check_urls` is only used by the test suite. This is a
+    bad code smell, but unfortunately it was the easiest way to test the URL-checking
+    functionality with test data.
+    '''
+
     tables = get_tables_for_dataset(dataset)
-    ds = Dataset(dataset, args=NYCDB_ARGS)
+    ds = Dataset(dataset, args=config.nycdb_args)
+    ds.setup_db()
+    conn = ds.db.conn
+
+    ensure_schema_exists(conn, 'nycdb_k8s_loader')
+    dbhash = SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
+    modtracker = UrlModTracker(get_urls_for_dataset(dataset), dbhash)
+
+    check_urls = (not config.use_test_data) or force_check_urls
+    if check_urls and not modtracker.did_any_urls_change():
+        slack.sendmsg(f'The dataset `{dataset}` has not changed since we last retrieved it.')
+        return
 
     slack.sendmsg(f'Downloading the dataset `{dataset}`...')
     ds.download_files()
 
     slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
-    ds.setup_db()
-    conn = ds.db.conn
     temp_schema = create_temp_schema_name(dataset)
     with create_and_enter_temporary_schema(conn, temp_schema):
         ds.db_import()
         with save_and_reapply_permissions(conn, tables, 'public'):
             drop_tables_if_they_exist(conn, tables, 'public')
             change_table_schemas(conn, tables, temp_schema, 'public')
+    modtracker.update_lastmods()
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
@@ -199,7 +233,7 @@ def main(argv: List[str]=sys.argv):
 
     tables = get_dataset_tables()
 
-    dataset = DATASET
+    dataset = os.environ.get('DATASET', '')
 
     if len(argv) > 1:
         dataset = argv[1]

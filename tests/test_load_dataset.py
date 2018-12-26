@@ -34,6 +34,13 @@ def get_row_counts(conn, dataset: str) -> Dict[str, int]:
     return dict(show_rowcounts.get_rowcounts(conn, tables))
 
 
+def test_get_urls_for_dataset_works():
+    urls = load_dataset.get_urls_for_dataset('hpd_registrations')
+    assert len(urls) > 0
+    for url in urls:
+        assert url.startswith('https://')
+
+
 @pytest.mark.parametrize('dataset', nycdb.dataset.datasets().keys())
 def test_load_dataset_works(test_db_env, dataset):
     with make_conn() as conn:
@@ -91,13 +98,38 @@ def test_get_temp_schemas_works(test_db_env, conn):
         assert len(load_dataset.get_temp_schemas(conn, 'boop')) == 0
 
 
-def test_exceptions_send_slack_msg():
+def test_exceptions_send_slack_msg(slack_outbox):
     with patch.object(load_dataset, 'load_dataset') as load:
-        with patch.object(load_dataset.slack, 'sendmsg') as sendmsg:
-            load.side_effect = Exception('blah')
-            with pytest.raises(Exception, match='blah'):
-                load_dataset.main(['', 'hpd_registrations'])
-            load.assert_called_once_with('hpd_registrations')
-            sendmsg.assert_called_once_with(
-                'Alas, an error occurred when loading the dataset `hpd_registrations`.'
-            )
+        load.side_effect = Exception('blah')
+        with pytest.raises(Exception, match='blah'):
+            load_dataset.main(['', 'hpd_registrations'])
+        load.assert_called_once_with('hpd_registrations')
+        assert slack_outbox == [
+            'Alas, an error occurred when loading the dataset `hpd_registrations`.'
+        ]
+
+
+def test_unmodified_datasets_are_not_retrieved(db, requests_mock, slack_outbox):
+    urls = load_dataset.get_urls_for_dataset('hpd_registrations')
+    config = load_dataset.Config(database_url=DATABASE_URL, use_test_data=True)
+    load = lambda: load_dataset.load_dataset('hpd_registrations', config, force_check_urls=True)
+
+    for url in urls:
+        requests_mock.get(url, text='blah', headers={'ETag': 'blah'})
+
+    load()
+    assert slack_outbox[0] == 'Downloading the dataset `hpd_registrations`...'
+    slack_outbox[:] = []
+
+    for url in urls:
+        requests_mock.get(url, request_headers={'If-None-Match': 'blah'}, status_code=304)
+    load()
+    assert slack_outbox == [
+        'The dataset `hpd_registrations` has not changed since we last retrieved it.'
+    ]
+    slack_outbox[:] = []
+
+    for url in urls:
+        requests_mock.get(url, text='blah2', headers={'ETag': 'blah2'})
+    load()
+    assert slack_outbox[0] == 'Downloading the dataset `hpd_registrations`...'

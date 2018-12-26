@@ -1,7 +1,7 @@
 from nycdb.cli import run_dbshell
 
-from load_dataset import NYCDB_ARGS
+from load_dataset import Config
 
 
 if __name__ == '__main__':
-    run_dbshell(NYCDB_ARGS)
+    run_dbshell(Config().nycdb_args)
