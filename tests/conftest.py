@@ -1,6 +1,7 @@
 import os
 import time
 import urllib.parse
+from unittest.mock import patch
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import pytest
@@ -81,3 +82,12 @@ def conn(db):
 
 def make_conn():
     return psycopg2.connect(DATABASE_URL)
+
+
+@pytest.fixture()
+def slack_outbox():
+    slack_outbox = []
+    log_slack_msg = lambda x: slack_outbox.append(x)
+
+    with patch('slack.sendmsg', side_effect=log_slack_msg):
+        yield slack_outbox

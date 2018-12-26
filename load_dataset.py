@@ -20,29 +20,31 @@ from dbhash import SqlDbHash
 
 
 NYCDB_DIR = Path('/nyc-db/src')
-
-DATABASE_URL = os.environ['DATABASE_URL']
-USE_TEST_DATA = bool(os.environ.get('USE_TEST_DATA', ''))
-DATASET = os.environ.get('DATASET', '')
-
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
 
-DB_INFO = urllib.parse.urlparse(DATABASE_URL)
-DB_PORT = DB_INFO.port or 5432
-DB_HOST = DB_INFO.hostname
-DB_NAME = DB_INFO.path[1:]
-DB_USER = DB_INFO.username
-DB_PASSWORD = DB_INFO.password
 
-NYCDB_ARGS = SimpleNamespace(
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    database=DB_NAME,
-    port=str(DB_PORT),
-    root_dir=str(TEST_DATA_DIR) if USE_TEST_DATA else str(NYCDB_DATA_DIR)
-)
+class Config(NamedTuple):
+    database_url: str = os.environ['DATABASE_URL']
+    use_test_data: bool = bool(os.environ.get('USE_TEST_DATA', ''))
+
+    @property
+    def nycdb_args(self):
+        DB_INFO = urllib.parse.urlparse(self.database_url)
+        DB_PORT = DB_INFO.port or 5432
+        DB_HOST = DB_INFO.hostname
+        DB_NAME = DB_INFO.path[1:]
+        DB_USER = DB_INFO.username
+        DB_PASSWORD = DB_INFO.password
+
+        return SimpleNamespace(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            database=DB_NAME,
+            port=str(DB_PORT),
+            root_dir=str(TEST_DATA_DIR) if self.use_test_data else str(NYCDB_DATA_DIR)
+        )
 
 
 class TableInfo(NamedTuple):
@@ -186,9 +188,17 @@ def sanity_check():
     assert TEST_DATA_DIR.exists()
 
 
-def load_dataset(dataset: str):
+def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=False):
+    '''
+    Load the given dataset using the given configuration.
+
+    Note that `force_check_urls` is only used by the test suite. This is a
+    bad code smell, but unfortunately it was the easiest way to test the URL-checking
+    functionality with test data.
+    '''
+
     tables = get_tables_for_dataset(dataset)
-    ds = Dataset(dataset, args=NYCDB_ARGS)
+    ds = Dataset(dataset, args=config.nycdb_args)
     ds.setup_db()
     conn = ds.db.conn
 
@@ -196,7 +206,8 @@ def load_dataset(dataset: str):
     dbhash = SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
     modtracker = UrlModTracker(get_urls_for_dataset(dataset), dbhash)
 
-    if not USE_TEST_DATA and not modtracker.did_any_urls_change():
+    check_urls = (not config.use_test_data) or force_check_urls
+    if check_urls and not modtracker.did_any_urls_change():
         slack.sendmsg(f'The dataset `{dataset}` has not changed since we last retrieved it.')
         return
 
@@ -222,7 +233,7 @@ def main(argv: List[str]=sys.argv):
 
     tables = get_dataset_tables()
 
-    dataset = DATASET
+    dataset = os.environ.get('DATASET', '')
 
     if len(argv) > 1:
         dataset = argv[1]
