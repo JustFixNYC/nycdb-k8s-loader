@@ -1,5 +1,5 @@
 """\
-Create scheduled tasks to populate NYC-DB tables.
+Manage scheduled tasks to populate NYC-DB tables.
 
 Usage:
   aws_schedule_tasks.py create <cluster-name>
@@ -56,8 +56,8 @@ DATASET_NAMES: List[str] = list(nycdb.datasets.datasets().keys())
 # For more details on schedule expressions, see:
 #
 # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-DAILY = 'cron(0 5 * * ? *)'     # Daily at around midnight EST.
-MONTHLY = 'cron(0 5 1 * ? *)'   # The first of every month around midnight EST.
+DAILY = 'cron(0 5 * * ? *)'               # Daily at around midnight EST.
+EVERY_OTHER_DAY = 'cron(0 5 */2 * ? *)'   # Every other day around midnight EST.
 YEARLY = 'rate(365 days)'
 
 # The default schedule expression for a dataset loader, if
@@ -69,10 +69,10 @@ DATASET_SCHEDULES: Dict[str, str] = {
     'dob_complaints': DAILY,
     'hpd_violations': DAILY,
     'oath_hearings': DAILY,
-    'hpd_registrations': MONTHLY,
-    'hpd_complaints': MONTHLY,
-    'dof_sales': MONTHLY,
-    'acris': MONTHLY
+    'hpd_registrations': EVERY_OTHER_DAY,
+    'hpd_complaints': EVERY_OTHER_DAY,
+    'dof_sales': EVERY_OTHER_DAY,
+    'acris': EVERY_OTHER_DAY
 }
 
 
