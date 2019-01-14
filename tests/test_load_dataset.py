@@ -22,6 +22,14 @@ def test_db_env(db):
     yield env
 
 
+def test_get_dataset_tables_included_derived_tables():
+    info = load_dataset.TableInfo(
+        name='hpd_registrations_grouped_by_bbl',
+        dataset='hpd_registrations'
+    )
+    assert info in load_dataset.get_dataset_tables()
+
+
 def drop_dataset_tables(conn, dataset: str, ok_if_nonexistent: bool):
     with conn.cursor() as cur:
         for table in load_dataset.get_tables_for_dataset(dataset):
