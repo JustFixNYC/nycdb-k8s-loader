@@ -15,6 +15,7 @@ from nycdb.utility import list_wrap
 
 import slack
 import db_perms
+from parse_created_tables import parse_nycdb_created_tables
 from lastmod import UrlModTracker
 from dbhash import SqlDbHash
 
@@ -78,8 +79,12 @@ def get_temp_schemas(conn, dataset: str) -> List[str]:
 def get_dataset_tables() -> List[TableInfo]:
     result: List[TableInfo] = []
     for dataset_name, info in nycdb.dataset.datasets().items():
-         for schema in list_wrap(info['schema']):
+        for schema in list_wrap(info['schema']):
             result.append(TableInfo(name=schema['table_name'], dataset=dataset_name))
+        result.extend([
+            TableInfo(name=name, dataset=dataset_name)
+            for name in parse_nycdb_created_tables(info.get('sql', []))
+        ])
     return result
 
 
