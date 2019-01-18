@@ -14,7 +14,6 @@ def parse_created_tables(sql: str) -> List[str]:
     tables: List[str] = []
 
     for stmt in sqlparse.parse(sql):
-        print(stmt.tokens)
         identifiers = [
             str(token.tokens[0]) for token in stmt.tokens
             if isinstance(token, Identifier)
