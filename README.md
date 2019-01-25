@@ -150,8 +150,18 @@ documentation on all of them.
 
 ## How it works
 
-The loader works by creating a temporary [Postgres schema][]
-for a dataset, and loading the dataset into that schema, which
+Every dataset is made up of URLs which their web servers
+deliver with `ETag` and/or `Last-Modified` metadata about when
+they have last been modified. The loader takes advantage
+of this information: if a dataset hasn't changed
+since the last time the loader retrieved it, it won't be retrieved
+or loaded again. This behavior can be overridden by deleting the
+last modification metadata for the dataset via the
+`dbtool.py lastmod:reset` command.
+
+If one or more of a dataset's URLs have been changed, the
+loader downloads them and creates a temporary [Postgres schema][]
+for the dataset. It then loads the dataset into that schema, which
 could take a long time. Using the temporary schema ensures that
 users can still make queries to the public schema (if one exists)
 while the new version of the dataset is being loaded.
@@ -165,10 +175,11 @@ permissions to the new tables in the public schema that they
 had to the old tables. However, you should probably verify
 this manually.
 
-## Querying load status
+## Other tooling
 
-If you want to get an idea of how loading is going without viewing logs,
-you could use the [`show_rowcounts.py`](show_rowcounts.py) utility.
+The [`dbtool.py`](dbtool.py) utility provides a variety of tools
+for querying the status of the database and making modifications
+to it.
 
 ## Tests
 
