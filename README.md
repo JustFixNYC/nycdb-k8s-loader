@@ -76,7 +76,7 @@ docker-compose build
 To deploy the jobs to your Kubernetes cluster, first generate job files:
 
 ```
-docker-compose run app python build_k8s_jobs.py
+docker-compose run app python k8s_build_jobs.py
 ```
 
 Note that the created jobs will use the environment variables defined
