@@ -1,8 +1,9 @@
 """\
-Show the row counts of datasets in the database.
+Perform various operations on the database.
 
 Usage:
-  show_rowcounts.py <dataset>...
+  dbtool.py shell
+  dbtool.py rowcounts <dataset>...
 
 Options:
   -h --help     Show this screen.
@@ -18,6 +19,7 @@ import psycopg2
 import docopt
 import nycdb.dataset
 from nycdb.utility import list_wrap
+import nycdb.cli
 
 import load_dataset
 
@@ -63,8 +65,7 @@ def print_rowcounts(conn, table_names: List[str], schema: str='public'):
         print(f"  {table} has {count:,} rows.")
 
 
-def main():
-    args = docopt.docopt(__doc__)
+def show_rowcounts(args):
     dataset_names = validate_and_get_dataset_names(args['<dataset>'])
 
     with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
@@ -78,6 +79,19 @@ def main():
                 print()
             print(f"For {dataset}'s public schema:\n")
             print_rowcounts(conn, tables)
+
+
+def shell():
+    args = load_dataset.Config().nycdb_args
+    nycdb.cli.run_dbshell(args)
+
+
+def main():
+    args = docopt.docopt(__doc__)
+    if args['rowcounts']:
+        show_rowcounts(args)
+    elif args['shell']:
+        shell()
 
 
 if __name__ == '__main__':

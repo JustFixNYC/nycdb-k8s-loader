@@ -9,7 +9,7 @@ import nycdb.dataset
 
 from .conftest import DATABASE_URL, make_conn
 import load_dataset
-import show_rowcounts
+import dbtool
 
 
 @pytest.fixture()
@@ -39,7 +39,7 @@ def drop_dataset_tables(conn, dataset: str, ok_if_nonexistent: bool):
 
 def get_row_counts(conn, dataset: str) -> Dict[str, int]:
     tables = [table.name for table in load_dataset.get_tables_for_dataset(dataset)]
-    return dict(show_rowcounts.get_rowcounts(conn, tables))
+    return dict(dbtool.get_rowcounts(conn, tables))
 
 
 def test_get_urls_for_dataset_works():
