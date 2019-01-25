@@ -23,6 +23,7 @@ from nycdb.utility import list_wrap
 import nycdb.cli
 
 import load_dataset
+from lib.lastmod import LastmodInfo
 
 
 def get_tables_for_datasets(names: List[str]) -> List[str]:
@@ -86,7 +87,17 @@ def shell(db_url: str):
 
 
 def list_lastmod(db_url: str, dataset_names: List[str]):
-    raise NotImplementedError()
+    with psycopg2.connect(db_url) as conn:
+        dbhash = load_dataset.get_dbhash(conn)
+        for dataset in dataset_names:
+            print(f"For the dataset {dataset}:")
+            urls = load_dataset.get_urls_for_dataset(dataset)
+            for url in urls:
+                info = LastmodInfo.read_from_dbhash(url, dbhash)
+                if info.last_modified:
+                    print(f"  The URL {url} was last modified on {info.last_modified}.")
+                else:
+                    print(f"  The URL {url} has no metadata about its last modification date.")
 
 
 def main(argv: List[str], db_url: str):

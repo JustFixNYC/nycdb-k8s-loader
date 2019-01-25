@@ -192,6 +192,11 @@ def sanity_check():
     assert TEST_DATA_DIR.exists()
 
 
+def get_dbhash(conn) -> SqlDbHash:
+    ensure_schema_exists(conn, 'nycdb_k8s_loader')
+    return SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
+
+
 def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=False):
     '''
     Load the given dataset using the given configuration.
@@ -206,8 +211,7 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
     ds.setup_db()
     conn = ds.db.conn
 
-    ensure_schema_exists(conn, 'nycdb_k8s_loader')
-    dbhash = SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
+    dbhash = get_dbhash(conn)
     modtracker = UrlModTracker(get_urls_for_dataset(dataset), dbhash)
 
     check_urls = (not config.use_test_data) or force_check_urls

@@ -39,3 +39,10 @@ def test_rowcounts_works(test_db_env, capsys):
 
     assert "hpd_registrations has 100 rows" in out
     assert "hpd_contacts has 100 rows" in out
+
+
+def test_list_lastmod_works(test_db_env, capsys):
+    dbtool.main(['lastmod:list', 'hpd_registrations'], DATABASE_URL)
+    out, err = capsys.readouterr()
+
+    assert "has no metadata about its last modification" in out
