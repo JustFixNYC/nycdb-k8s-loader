@@ -5,6 +5,7 @@ Usage:
   dbtool.py shell
   dbtool.py rowcounts <dataset>...
   dbtool.py lastmod:list <dataset>...
+  dbtool.py lastmod:reset <dataset>...
 
 Options:
   -h --help     Show this screen.
@@ -100,6 +101,18 @@ def list_lastmod(db_url: str, dataset_names: List[str]):
                     print(f"  The URL {url} has no metadata about its last modification date.")
 
 
+def reset_lastmod(db_url: str, dataset_names: List[str]):
+    with psycopg2.connect(db_url) as conn:
+        dbhash = load_dataset.get_dbhash(conn)
+        for dataset in dataset_names:
+            print(f"For the dataset {dataset}:")
+            urls = load_dataset.get_urls_for_dataset(dataset)
+            for url in urls:
+                info = LastmodInfo(url)
+                print(f"Clearing last modification metadata for {dataset}'s URL {url}.")
+                info.write_to_dbhash(dbhash)
+
+
 def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 
@@ -113,6 +126,8 @@ def main(argv: List[str], db_url: str):
         shell(db_url)
     elif args['lastmod:list']:
         list_lastmod(db_url, dataset_names)
+    elif args['lastmod:reset']:
+        reset_lastmod(db_url, dataset_names)
 
 
 if __name__ == '__main__':

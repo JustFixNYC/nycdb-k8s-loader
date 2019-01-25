@@ -1,9 +1,16 @@
 from unittest.mock import patch
+import contextlib
 import subprocess
+import psycopg2
 import pytest
 
 import dbtool
+import load_dataset
+from lib.lastmod import LastmodInfo
 from .conftest import DATABASE_URL
+
+
+HPD_REG_URL = load_dataset.get_urls_for_dataset('hpd_registrations')[0]
 
 
 def test_get_tables_for_datasets_works():
@@ -41,8 +48,37 @@ def test_rowcounts_works(test_db_env, capsys):
     assert "hpd_contacts has 100 rows" in out
 
 
-def test_list_lastmod_works(test_db_env, capsys):
-    dbtool.main(['lastmod:list', 'hpd_registrations'], DATABASE_URL)
-    out, err = capsys.readouterr()
+@contextlib.contextmanager
+def load_dbhash():
+    with psycopg2.connect(DATABASE_URL) as conn:
+        dbhash = load_dataset.get_dbhash(conn)
+        yield dbhash
 
-    assert "has no metadata about its last modification" in out
+
+def test_list_lastmod_works(db, capsys):
+    def list_lastmod():
+        dbtool.main(['lastmod:list', 'hpd_registrations'], DATABASE_URL)
+        out, err = capsys.readouterr()
+        return out
+
+    assert "has no metadata about its last modification" in list_lastmod()
+
+    url = HPD_REG_URL
+    with load_dbhash() as dbhash:
+        info = LastmodInfo(url, etag='blah', last_modified='Tue, 01 Jan 2019 20:56:28 UTC')
+        info.write_to_dbhash(dbhash)
+
+    assert "was last modified on Tue, 01 Jan 2019 20:56:28 UTC" in list_lastmod()
+
+
+def test_reset_lastmod_works(db, capsys):
+    url = HPD_REG_URL
+    with load_dbhash() as dbhash:
+        info = LastmodInfo(url, etag='blah', last_modified='Tue, 01 Jan 2019 20:56:28 UTC')
+        info.write_to_dbhash(dbhash)
+
+    dbtool.main(['lastmod:reset', 'hpd_registrations'], DATABASE_URL)
+
+    with load_dbhash() as dbhash:
+        info = LastmodInfo.read_from_dbhash(url, dbhash)
+        assert info == LastmodInfo(url=url, etag=None, last_modified=None)
