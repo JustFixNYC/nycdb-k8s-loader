@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import slack
+from lib import slack
 
 
 def test_sendmsg_returns_false_when_post_to_webhook_fails(requests_mock, monkeypatch):

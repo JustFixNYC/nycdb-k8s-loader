@@ -1,4 +1,4 @@
-from parse_created_tables import (
+from lib.parse_created_tables import (
     parse_created_tables,
     parse_nycdb_created_tables
 )

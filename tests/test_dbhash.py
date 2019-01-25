@@ -1,6 +1,6 @@
 import pytest
 
-from dbhash import AbstractDbHash, DictDbHash, SqlDbHash
+from lib.dbhash import AbstractDbHash, DictDbHash, SqlDbHash
 
 
 def _test_dbhash_implementation(dbh: AbstractDbHash):

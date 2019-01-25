@@ -13,11 +13,10 @@ import nycdb.dataset
 from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
 
-import slack
-import db_perms
-from parse_created_tables import parse_nycdb_created_tables
-from lastmod import UrlModTracker
-from dbhash import SqlDbHash
+from lib import slack, db_perms
+from lib.parse_created_tables import parse_nycdb_created_tables
+from lib.lastmod import UrlModTracker
+from lib.dbhash import SqlDbHash
 
 
 NYCDB_DIR = Path('/nyc-db/src')

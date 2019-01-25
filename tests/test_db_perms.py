@@ -1,7 +1,7 @@
 import pytest
 
 from .conftest import DB_NAME
-import db_perms
+from lib import db_perms
 import load_dataset
 
 

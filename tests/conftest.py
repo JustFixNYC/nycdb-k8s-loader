@@ -89,5 +89,5 @@ def slack_outbox():
     slack_outbox = []
     log_slack_msg = lambda x: slack_outbox.append(x)
 
-    with patch('slack.sendmsg', side_effect=log_slack_msg):
+    with patch('lib.slack.sendmsg', side_effect=log_slack_msg):
         yield slack_outbox

@@ -1,7 +1,7 @@
 from typing import Optional, NamedTuple, TypeVar, Type, Dict, List, Mapping
 import requests
 
-from dbhash import AbstractDbHash
+from .dbhash import AbstractDbHash
 
 
 class LastmodInfo(NamedTuple):

@@ -1,7 +1,7 @@
 import pytest
 
-from lastmod import LastmodInfo, UrlModTracker
-from dbhash import DictDbHash
+from lib.lastmod import LastmodInfo, UrlModTracker
+from lib.dbhash import DictDbHash
 
 
 class TestLastmodInfo:
