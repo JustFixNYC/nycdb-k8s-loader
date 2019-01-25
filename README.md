@@ -76,7 +76,7 @@ docker-compose build
 To deploy the jobs to your Kubernetes cluster, first generate job files:
 
 ```
-docker-compose run app python build_jobs.py
+docker-compose run app python build_k8s_jobs.py
 ```
 
 Note that the created jobs will use the environment variables defined
@@ -85,7 +85,7 @@ in your `.env` file.
 Then tell k8s to start your jobs:
 
 ```
-kubectl create -f ./jobs
+kubectl create -f ./k8s-jobs
 ```
 
 Now you can visit the "Jobs" section of your Kubernetes Dashboard to see
@@ -94,7 +94,7 @@ the state of the jobs.
 If you want to stop the jobs, or clean them up once they're finished, run:
 
 ```
-kubectl delete -f ./jobs
+kubectl delete -f ./k8s-jobs
 ```
 
 ## Deployment: Amazon Fargate

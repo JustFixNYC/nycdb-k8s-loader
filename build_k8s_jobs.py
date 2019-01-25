@@ -8,9 +8,9 @@ import load_dataset
 
 MY_DIR = Path(__file__).parent.resolve()
 
-JOB_TEMPLATE = MY_DIR / 'job-template.yml'
+JOB_TEMPLATE = MY_DIR / 'k8s-job-template.yml'
 
-JOBS_DIR = MY_DIR / 'jobs'
+JOBS_DIR = MY_DIR / 'k8s-jobs'
 
 
 def get_env(name: str) -> Dict[str, str]:

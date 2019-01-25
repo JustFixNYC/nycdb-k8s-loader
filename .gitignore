@@ -1,5 +1,5 @@
 __pycache__/
 .mypy_cache/
-jobs/
+k8s-jobs/
 .env
 venv/
