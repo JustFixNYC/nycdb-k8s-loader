@@ -5,7 +5,7 @@ from unittest.mock import patch
 from typing import Dict
 import urllib.parse
 import pytest
-import nycdb.datasets
+import nycdb.dataset
 
 from .conftest import DATABASE_URL, make_conn
 import load_dataset

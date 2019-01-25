@@ -16,7 +16,7 @@ import sys
 from typing import List, Tuple, Iterator
 import psycopg2
 import docopt
-import nycdb.datasets
+import nycdb.dataset
 from nycdb.utility import list_wrap
 
 import load_dataset
@@ -26,7 +26,7 @@ def get_tables_for_datasets(names: List[str]) -> List[str]:
     tables: List[str] = []
 
     for name in names:
-        schema = list_wrap(nycdb.datasets.datasets()[name]['schema'])
+        schema = list_wrap(nycdb.dataset.datasets()[name]['schema'])
         tables.extend([t['table_name'] for t in schema])
 
     return tables
@@ -34,7 +34,7 @@ def get_tables_for_datasets(names: List[str]) -> List[str]:
 
 def validate_and_get_dataset_names(dsnames: List[str]) -> List[str]:
     dataset_names: List[str] = []
-    all_dataset_names = nycdb.datasets.datasets().keys()
+    all_dataset_names = nycdb.dataset.datasets().keys()
 
     for name in dsnames:
         if name == 'all':

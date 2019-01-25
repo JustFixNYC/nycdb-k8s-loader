@@ -15,8 +15,8 @@ RUN apk update && \
   apk del build-dependencies && \
   rm -rf /var/cache/apk/*
 
-ARG NYCDB_REPO=https://github.com/toolness/nyc-db
-ARG NYCDB_REV=c1a30f7312053b1cf5a12486086d83048ead409c
+ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
+ARG NYCDB_REV=572a7a1240720b70c07c6caec68048039ba5ee2b
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of

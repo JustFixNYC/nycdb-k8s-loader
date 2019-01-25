@@ -43,12 +43,12 @@ import json
 import boto3
 import docopt
 import dotenv
-import nycdb.datasets
+import nycdb.dataset
 
 dotenv.load_dotenv()
 
 # The names of all valid NYC-DB datasets.
-DATASET_NAMES: List[str] = list(nycdb.datasets.datasets().keys())
+DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
 
 # Various schedule expressions. Note that all times must be specified
 # in UTC.
