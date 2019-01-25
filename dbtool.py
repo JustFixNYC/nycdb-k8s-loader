@@ -4,6 +4,7 @@ Perform various operations on the database.
 Usage:
   dbtool.py shell
   dbtool.py rowcounts <dataset>...
+  dbtool.py lastmod:list <dataset>...
 
 Options:
   -h --help     Show this screen.
@@ -65,10 +66,8 @@ def print_rowcounts(conn, table_names: List[str], schema: str='public'):
         print(f"  {table} has {count:,} rows.")
 
 
-def show_rowcounts(args):
-    dataset_names = validate_and_get_dataset_names(args['<dataset>'])
-
-    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
+def show_rowcounts(db_url: str, dataset_names: List[str]):
+    with psycopg2.connect(db_url) as conn:
         for dataset in dataset_names:
             tables = get_tables_for_datasets([dataset])
             schemas = load_dataset.get_temp_schemas(conn, dataset)
@@ -81,18 +80,29 @@ def show_rowcounts(args):
             print_rowcounts(conn, tables)
 
 
-def shell():
-    args = load_dataset.Config().nycdb_args
+def shell(db_url: str):
+    args = load_dataset.Config(database_url=db_url).nycdb_args
     nycdb.cli.run_dbshell(args)
 
 
-def main():
-    args = docopt.docopt(__doc__)
+def list_lastmod(db_url: str, dataset_names: List[str]):
+    raise NotImplementedError()
+
+
+def main(argv: List[str], db_url: str):
+    args = docopt.docopt(__doc__, argv=argv)
+
+    dataset_names: List[str] = []
+    if args.get('<dataset>'):
+        dataset_names = validate_and_get_dataset_names(args['<dataset>'])
+
     if args['rowcounts']:
-        show_rowcounts(args)
+        show_rowcounts(db_url, dataset_names)
     elif args['shell']:
-        shell()
+        shell(db_url)
+    elif args['lastmod:list']:
+        list_lastmod(db_url, dataset_names)
 
 
 if __name__ == '__main__':
-    main()
+    main(argv=sys.argv[1:], db_url=os.environ['DATABASE_URL'])

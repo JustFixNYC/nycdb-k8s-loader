@@ -12,16 +12,6 @@ import load_dataset
 import dbtool
 
 
-@pytest.fixture()
-def test_db_env(db):
-    env = os.environ.copy()
-    env['DATABASE_URL'] = DATABASE_URL
-    env['USE_TEST_DATA'] = '1'
-    env['DATASET'] = ''
-    env['SLACK_WEBHOOK_URL'] = ''
-    yield env
-
-
 def test_get_dataset_tables_included_derived_tables():
     info = load_dataset.TableInfo(
         name='hpd_registrations_grouped_by_bbl',

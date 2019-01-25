@@ -91,3 +91,13 @@ def slack_outbox():
 
     with patch('lib.slack.sendmsg', side_effect=log_slack_msg):
         yield slack_outbox
+
+
+@pytest.fixture()
+def test_db_env(db):
+    env = os.environ.copy()
+    env['DATABASE_URL'] = DATABASE_URL
+    env['USE_TEST_DATA'] = '1'
+    env['DATASET'] = ''
+    env['SLACK_WEBHOOK_URL'] = ''
+    yield env
