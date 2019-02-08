@@ -1,6 +1,3 @@
-from typing import List
-
-
 def exec_grant_sql(conn, sql: str):
     if not sql:
         return
