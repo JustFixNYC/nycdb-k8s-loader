@@ -1,3 +1,4 @@
+import psycopg2
 from nycdb.dataset import Dataset
 
 from .conftest import DATABASE_URL
@@ -11,5 +12,11 @@ def test_it_works(db, slack_outbox):
         ds = Dataset(dataset_name, args=config.nycdb_args)
         ds.db_import()
     wowutil.main(['build'], db_url=DATABASE_URL)
+
+    with psycopg2.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM wow.wow_bldgs")
+            assert cur.fetchone()[0] > 0
+
     assert slack_outbox[0] == 'Rebuilding Who Owns What tables...'
     assert slack_outbox[1] == 'Finished rebuilding Who Owns What tables.'
