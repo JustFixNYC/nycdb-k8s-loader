@@ -37,7 +37,6 @@ Environment variables:
   AWS_DEFAULT_REGION     The AWS region to use.
 """
 
-import sys
 from typing import List, Dict
 import json
 import boto3
@@ -133,7 +132,7 @@ def create_task(
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
     client = boto3.client('events')
-    response = client.put_rule(
+    client.put_rule(
         Name=name,
         ScheduleExpression=schedule_expression,
         State="ENABLED",

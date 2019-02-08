@@ -3,7 +3,6 @@ from pathlib import Path
 from functools import lru_cache
 import sqlparse
 from sqlparse.sql import Identifier
-from sqlparse import tokens as T
 import nycdb
 
 

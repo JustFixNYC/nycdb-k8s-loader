@@ -1,14 +1,11 @@
 import os
 import sys
-import subprocess
 import contextlib
 import time
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
 import urllib.parse
-import psycopg2
-import yaml
 import nycdb.dataset
 from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
@@ -238,8 +235,6 @@ def main(argv: List[str]=sys.argv):
     sanity_check()
 
     NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-    tables = get_dataset_tables()
 
     dataset = os.environ.get('DATASET', '')
 

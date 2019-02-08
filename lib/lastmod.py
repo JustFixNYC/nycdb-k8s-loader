@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple, TypeVar, Type, Dict, List, Mapping
+from typing import Optional, NamedTuple, Dict, List, Mapping
 import requests
 
 from .dbhash import AbstractDbHash

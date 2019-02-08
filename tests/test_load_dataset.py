@@ -1,9 +1,6 @@
-import os
-import time
 import subprocess
 from unittest.mock import patch
 from typing import Dict
-import urllib.parse
 import pytest
 import nycdb.dataset
 
