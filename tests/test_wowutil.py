@@ -18,5 +18,9 @@ def test_it_works(db, slack_outbox):
             cur.execute("SELECT COUNT(*) FROM wow.wow_bldgs")
             assert cur.fetchone()[0] > 0
 
+            # Make sure functions are defined, at least.
+            cur.execute("SET search_path TO wow, public")
+            cur.execute("SELECT wow.get_assoc_addrs_from_bbl('blah')")
+
     assert slack_outbox[0] == 'Rebuilding Who Owns What tables...'
     assert slack_outbox[1] == 'Finished rebuilding Who Owns What tables.'

@@ -2,9 +2,11 @@ import os
 import sys
 import contextlib
 import time
+import re
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
+import nycdb
 import urllib.parse
 import nycdb.dataset
 from nycdb.dataset import Dataset
@@ -99,6 +101,48 @@ def get_urls_for_dataset(dataset: str) -> List[str]:
     return [
         fileinfo['url'] for fileinfo in nycdb.dataset.datasets()[dataset]['files']
     ]
+
+
+def get_all_create_function_sql(root_dir: Path, sql_files: List[str]) -> str:
+    '''
+    Given the SQL files in the given root directory, concatenate the
+    contents of only the ones that contain "CREATE OR REPLACE FUNCTION"
+    SQL statements. It's assumed that these particular SQL files are
+    idempotent.
+    '''
+
+    sqls: List[str] = []
+
+    for sql_file in sql_files:
+        sql = (root_dir / sql_file).read_text()
+        if does_sql_create_functions(sql):
+            sqls.append(sql)
+
+    return '\n'.join(sqls)
+
+
+def get_all_create_function_sql_for_dataset(dataset: str) -> str:
+    return get_all_create_function_sql(
+        root_dir=Path(nycdb.__file__).parent.resolve() / 'sql',
+        sql_files=nycdb.dataset.datasets()[dataset].get('sql', [])
+    )
+
+
+def run_sql_if_nonempty(conn, sql: str, initial_sql: str = ''):
+    if sql:
+        with conn.cursor() as cur:
+            if initial_sql:
+                cur.execute(initial_sql)
+            cur.execute(sql)
+        conn.commit()
+
+
+def collapse_whitespace(text: str) -> str:
+    return re.sub(r'\W+', ' ', text)
+
+
+def does_sql_create_functions(sql: str) -> bool:
+    return 'CREATE OR REPLACE FUNCTION' in collapse_whitespace(sql).upper()
 
 
 def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
@@ -226,6 +270,13 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
         with save_and_reapply_permissions(conn, tables, 'public'):
             drop_tables_if_they_exist(conn, tables, 'public')
             change_table_schemas(conn, tables, temp_schema, 'public')
+
+    # The dataset's tables are ready, but any functions defined by the
+    # dataset's custom SQL were in the temporary schema that just got
+    # destroyed. Let's re-run only the function-creating SQL for the
+    # dataset now, in the public schema so that clients can use it.
+    run_sql_if_nonempty(conn, get_all_create_function_sql_for_dataset(dataset))
+
     modtracker.update_lastmods()
     slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")

@@ -26,6 +26,8 @@ from load_dataset import (
     ensure_schema_exists,
     drop_tables_if_they_exist,
     change_table_schemas,
+    run_sql_if_nonempty,
+    get_all_create_function_sql,
     TableInfo
 )
 
@@ -33,6 +35,8 @@ from load_dataset import (
 WOW_SCHEMA = 'wow'
 
 WOW_DIR = Path('/who-owns-what')
+
+WOW_SQL_DIR = Path(WOW_DIR / 'sql')
 
 # TODO: This eventually should be in the WoW repo and we should import it.
 WOW_NYCDB_DEPENDENCIES = [
@@ -62,7 +66,7 @@ def run_wow_sql(conn):
     with conn.cursor() as cur:
         for msg, filename in WOW_SCRIPTS:
             print(msg)
-            sql = (WOW_DIR / 'sql' / filename).read_text()
+            sql = (WOW_SQL_DIR / filename).read_text()
             cur.execute(sql)
     conn.commit()
 
@@ -85,6 +89,16 @@ def build(db_url: str):
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
                 change_table_schemas(conn, tables, temp_schema, WOW_SCHEMA)
+
+        # The WoW tables are now ready, but the functions defined by WoW were
+        # in the temporary schema that just got destroyed. Let's re-run only
+        # the function-creating SQL in the WoW schema now.
+        #
+        # Note this means that any client which uses the functions will need
+        # to set their search_path to "{WOW_SCHEMA}, public" or else the function
+        # may not be found or might even crash!
+        sql = get_all_create_function_sql(WOW_SQL_DIR, [sqlf for _, sqlf in WOW_SCRIPTS])
+        run_sql_if_nonempty(conn, sql, initial_sql=f'SET search_path TO {WOW_SCHEMA}, public')
 
     slack.sendmsg('Finished rebuilding Who Owns What tables.')
 

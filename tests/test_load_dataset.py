@@ -6,6 +6,11 @@ import nycdb.dataset
 
 from .conftest import DATABASE_URL, make_conn
 import load_dataset
+from load_dataset import (
+    does_sql_create_functions,
+    get_all_create_function_sql_for_dataset,
+    collapse_whitespace
+)
 import dbtool
 
 
@@ -15,13 +20,6 @@ def test_get_dataset_tables_included_derived_tables():
         dataset='hpd_registrations'
     )
     assert info in load_dataset.get_dataset_tables()
-
-
-def drop_dataset_tables(conn, dataset: str, ok_if_nonexistent: bool):
-    with conn.cursor() as cur:
-        for table in load_dataset.get_tables_for_dataset(dataset):
-            if_exists = 'IF EXISTS' if ok_if_nonexistent else ''
-            cur.execute(f'DROP TABLE {if_exists} {table.name}')
 
 
 def get_row_counts(conn, dataset: str) -> Dict[str, int]:
@@ -36,16 +34,21 @@ def test_get_urls_for_dataset_works():
         assert url.startswith('https://')
 
 
+def run_dataset_specific_test_logic(conn, dataset):
+    if dataset == 'hpd_registrations':
+        with conn.cursor() as cur:
+            # Make sure the function defined by the dataset's SQL scripts exists.
+            cur.execute('SELECT get_corporate_owner_info_for_regid(1)')
+
+
 @pytest.mark.parametrize('dataset', nycdb.dataset.datasets().keys())
 def test_load_dataset_works(test_db_env, dataset):
-    with make_conn() as conn:
-        drop_dataset_tables(conn, dataset, ok_if_nonexistent=True)
-
     subprocess.check_call([
         'python', 'load_dataset.py', dataset
     ], env=test_db_env)
 
     with make_conn() as conn:
+        run_dataset_specific_test_logic(conn, dataset)
         table_counts = get_row_counts(conn, dataset)
 
     assert len(table_counts) > 0
@@ -59,8 +62,8 @@ def test_load_dataset_works(test_db_env, dataset):
     ], env=test_db_env)
 
     with make_conn() as conn:
+        run_dataset_specific_test_logic(conn, dataset)
         assert get_row_counts(conn, dataset) == table_counts
-        drop_dataset_tables(conn, dataset, ok_if_nonexistent=False)
 
 
 def test_load_dataset_fails_if_no_dataset_provided(test_db_env):
@@ -128,3 +131,25 @@ def test_unmodified_datasets_are_not_retrieved(db, requests_mock, slack_outbox):
         requests_mock.get(url, text='blah2', headers={'ETag': 'blah2'})
     load()
     assert slack_outbox[0] == 'Downloading the dataset `hpd_registrations`...'
+
+
+def test_does_sql_create_functions_works():
+    assert does_sql_create_functions('\nCREATE OR REPLACE FUNCTION boop()') is True
+    assert does_sql_create_functions('CREATE OR  REPLACE  \nFUNCTION boop()') is True
+    assert does_sql_create_functions('create or  replace  \nfunction boop()') is True
+    assert does_sql_create_functions('CREATE OR ZZZ REPLACE FUNCTION boop()') is False
+    assert does_sql_create_functions('') is False
+    assert does_sql_create_functions('CREATE TABLE blarg') is False
+
+
+def test_get_all_create_function_sql_for_dataset_conforms_to_expectations():
+    for dataset in nycdb.dataset.datasets().keys():
+        # Make sure that all the SQL that creates functions *only* creates
+        # functions and doesn't e.g. create tables.
+        sql = get_all_create_function_sql_for_dataset(dataset)
+        assert 'CREATE TABLE' not in collapse_whitespace(sql).upper()
+
+
+def test_get_all_create_function_sql_for_dataset_works():
+    sql = get_all_create_function_sql_for_dataset('hpd_registrations')
+    assert 'CREATE OR REPLACE FUNCTION get_corporate_owner_info_for_regid' in sql
