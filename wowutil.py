@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import List
 import docopt
 import psycopg2
+import yaml
 
 from lib import slack
 from lib.parse_created_tables import parse_created_tables_in_dir
@@ -39,31 +40,15 @@ WOW_DIR = Path('/who-owns-what')
 
 WOW_SQL_DIR = Path(WOW_DIR / 'sql')
 
-# TODO: This eventually should be in the WoW repo and we should import it.
-WOW_NYCDB_DEPENDENCIES = [
-    # 'pluto_17v1',        # TODO: I don't think we actually need this one, but make sure.
-    'pluto_18v1',
-    'rentstab_summary',
-    'marshal_evictions_17',
-    'hpd_registrations',
-    'hpd_violations'
-]
+WOW_YML = yaml.load((WOW_DIR / 'who-owns-what.yml').read_text())
 
-# TODO: This eventually should be in the WoW repo and we should import it.
-WOW_SCRIPTS = [
-    ("Creating hpd_registrations_with_contacts...", 'registrations_with_contacts.sql'),
-    ("Creating WoW buildings table...", "create_bldgs_table.sql"),
-    ("Adding helper functions...", "helper_functions.sql"),
-    ("Creating WoW search function...", "search_function.sql"),
-    ("Creating WoW agg function...", "agg_function.sql"),
-    ("Creating hpd landlord contact table...", "landlord_contact.sql"),
-]
+WOW_SCRIPTS: List[str] = WOW_YML['sql']
 
 
 def run_wow_sql(conn):
     with conn.cursor() as cur:
-        for msg, filename in WOW_SCRIPTS:
-            print(msg)
+        for filename in WOW_SCRIPTS:
+            print(f"Runnig {filename}...")
             sql = (WOW_SQL_DIR / filename).read_text()
             cur.execute(sql)
     conn.commit()
@@ -74,10 +59,9 @@ def build(db_url: str):
 
     cosmetic_dataset_name = 'wow'
 
-    sqlfiles = [sqlf for _, sqlf in WOW_SCRIPTS]
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
-        for name in parse_created_tables_in_dir(WOW_SQL_DIR, sqlfiles)
+        for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
     ]
 
     with psycopg2.connect(db_url) as conn:
@@ -96,7 +80,7 @@ def build(db_url: str):
         # Note this means that any client which uses the functions will need
         # to set their search_path to "{WOW_SCHEMA}, public" or else the function
         # may not be found or might even crash!
-        sql = get_all_create_function_sql(WOW_SQL_DIR, sqlfiles)
+        sql = get_all_create_function_sql(WOW_SQL_DIR, WOW_SCRIPTS)
         run_sql_if_nonempty(conn, sql, initial_sql=f'SET search_path TO {WOW_SCHEMA}, public')
 
     slack.sendmsg('Finished rebuilding Who Owns What tables.')

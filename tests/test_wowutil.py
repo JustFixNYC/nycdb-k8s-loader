@@ -8,7 +8,7 @@ import wowutil
 
 def test_it_works(db, slack_outbox):
     config = Config(database_url=DATABASE_URL, use_test_data=True)
-    for dataset_name in wowutil.WOW_NYCDB_DEPENDENCIES:
+    for dataset_name in wowutil.WOW_YML['dependencies']:
         ds = Dataset(dataset_name, args=config.nycdb_args)
         ds.db_import()
     wowutil.main(['build'], db_url=DATABASE_URL)
