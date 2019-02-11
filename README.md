@@ -223,6 +223,12 @@ of the WoW data are already in the database at the time that
 The specific version of WoW used by `wowutil.py` is specified
 by the `WOW_REV` argument in the `Dockerfile`.
 
+As an alternative to running `wowutil.py`, you can also specify
+`wow` as the dataset for the `load_dataset.py` tool to load: this
+is essentially a shortcut for `wowutil.py build` and can be
+a convenient way to "slot in" the loading of WoW data to an
+already existing workflow for other NYCDB datasets.
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/

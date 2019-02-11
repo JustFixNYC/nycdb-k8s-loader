@@ -247,6 +247,11 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
     functionality with test data.
     '''
 
+    if dataset == 'wow':
+        import wowutil
+        wowutil.build(config.database_url)
+        return
+
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=config.nycdb_args)
     ds.setup_db()
