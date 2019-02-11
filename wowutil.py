@@ -48,7 +48,7 @@ WOW_SCRIPTS: List[str] = WOW_YML['sql']
 def run_wow_sql(conn):
     with conn.cursor() as cur:
         for filename in WOW_SCRIPTS:
-            print(f"Runnig {filename}...")
+            print(f"Running {filename}...")
             sql = (WOW_SQL_DIR / filename).read_text()
             cur.execute(sql)
     conn.commit()
@@ -80,6 +80,7 @@ def build(db_url: str):
         # Note this means that any client which uses the functions will need
         # to set their search_path to "{WOW_SCHEMA}, public" or else the function
         # may not be found or might even crash!
+        print(f"Re-running CREATE FUNCTION statements in the {WOW_SCHEMA} schema...")
         sql = get_all_create_function_sql(WOW_SQL_DIR, WOW_SCRIPTS)
         run_sql_if_nonempty(conn, sql, initial_sql=f'SET search_path TO {WOW_SCHEMA}, public')
 
