@@ -202,6 +202,27 @@ Our continuous integration system will then ensure that everything still
 works, and once the PR is merged into `master`, Docker Hub will re-publish
 a new container image that uses the latest version of NYC-DB.
 
+## Updating Who Owns What data
+
+This repository also contains `wowutil.py`, a tool for creating and
+updating the NYCDB-derived tables and functions required by
+[Who Owns What][] (WoW).
+
+Currently, the tool creates WoW's tables and functions under a
+Postgres schema called `wow`.  It's the responsibility of the
+database administrator to set the [Postgres schema search path][]
+to `wow, public` for WoW's functions to work properly.
+
+Unlike the NYCDB datasets, at the time of this writing, there are
+no tools to automate the *scheduling* of WoW data updates.
+
+It is also your responsibility to ensure that the NYCDB dependencies
+of the WoW data are already in the database at the time that
+`wowutil.py` is used to generate the WoW tables and functions.
+
+The specific version of WoW used by `wowutil.py` is specified
+by the `WOW_REV` argument in the `Dockerfile`.
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
@@ -213,3 +234,5 @@ a new container image that uses the latest version of NYC-DB.
 [Scheduled Tasks]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html
 [rev]: https://github.com/JustFixNYC/nycdb-k8s-loader/blob/master/Dockerfile#L19
 [Postgres schema]: https://www.postgresql.org/docs/9.5/ddl-schemas.html
+[Who Owns What]: https://github.com/justfixnyc/who-owns-what
+[Postgres schema search path]: https://www.postgresql.org/docs/9.6/ddl-schemas.html#DDL-SCHEMAS-PATH
