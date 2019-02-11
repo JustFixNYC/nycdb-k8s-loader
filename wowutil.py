@@ -19,6 +19,7 @@ import docopt
 import psycopg2
 
 from lib import slack
+from lib.parse_created_tables import parse_created_tables_in_dir
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
@@ -49,9 +50,6 @@ WOW_NYCDB_DEPENDENCIES = [
 ]
 
 # TODO: This eventually should be in the WoW repo and we should import it.
-WOW_TABLES = ['wow_bldgs']
-
-# TODO: This eventually should be in the WoW repo and we should import it.
 WOW_SCRIPTS = [
     ("Creating hpd_registrations_with_contacts...", 'registrations_with_contacts.sql'),
     ("Creating WoW buildings table...", "create_bldgs_table.sql"),
@@ -76,9 +74,10 @@ def build(db_url: str):
 
     cosmetic_dataset_name = 'wow'
 
+    sqlfiles = [sqlf for _, sqlf in WOW_SCRIPTS]
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
-        for name in WOW_TABLES
+        for name in parse_created_tables_in_dir(WOW_SQL_DIR, sqlfiles)
     ]
 
     with psycopg2.connect(db_url) as conn:
@@ -97,7 +96,7 @@ def build(db_url: str):
         # Note this means that any client which uses the functions will need
         # to set their search_path to "{WOW_SCHEMA}, public" or else the function
         # may not be found or might even crash!
-        sql = get_all_create_function_sql(WOW_SQL_DIR, [sqlf for _, sqlf in WOW_SCRIPTS])
+        sql = get_all_create_function_sql(WOW_SQL_DIR, sqlfiles)
         run_sql_if_nonempty(conn, sql, initial_sql=f'SET search_path TO {WOW_SCHEMA}, public')
 
     slack.sendmsg('Finished rebuilding Who Owns What tables.')

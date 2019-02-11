@@ -28,12 +28,16 @@ def parse_created_tables(sql: str) -> List[str]:
 
 
 @lru_cache()
-def _parse_nycdb_sql_file(filename: str) -> List[str]:
-    return parse_created_tables((NYCDB_SQL_DIR / filename).read_text())
+def _parse_sql_file(path: Path) -> List[str]:
+    return parse_created_tables(path.read_text())
 
 
 def parse_nycdb_created_tables(filenames: List[str]) -> List[str]:
+    return parse_created_tables_in_dir(NYCDB_SQL_DIR, filenames)
+
+
+def parse_created_tables_in_dir(root_dir: Path, filenames: List[str]) -> List[str]:
     result: List[str] = []
     for filename in filenames:
-        result.extend(_parse_nycdb_sql_file(filename))
+        result.extend(_parse_sql_file(root_dir / filename))
     return result
