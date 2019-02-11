@@ -42,11 +42,13 @@ def create_db(dbname):
     exec_outside_of_transaction('CREATE DATABASE ' + dbname)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def db():
     """
     Attempt to connect to the database, retrying if necessary, and also
     creating the database if it doesn't already exist.
+
+    This will also ensure the database is empty when the test starts.
     """
 
     retries_left = 5
