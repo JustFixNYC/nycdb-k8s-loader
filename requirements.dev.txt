@@ -3,7 +3,6 @@ mypy==0.650
 pytest
 requests-mock
 boto3
-docopt
 python-dotenv
 requests-mock
 pyflakes==2.1.0
