@@ -60,14 +60,6 @@ def install_db_extensions(conn):
     conn.commit()
 
 
-def drop_functions_if_they_exist(conn, schema):
-    with conn.cursor() as cur:
-        # TODO: It would be nice if we didn't have to hard-code this, but
-        # apparently dropping all functions from a schema is non-trivial.
-        cur.execute(f'DROP FUNCTION IF EXISTS wow.get_assoc_addrs_from_bbl(text)')
-    conn.commit()
-
-
 def build(db_url: str):
     slack.sendmsg('Rebuilding Who Owns What tables...')
 
@@ -85,7 +77,6 @@ def build(db_url: str):
             run_wow_sql(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
-                drop_functions_if_they_exist(conn, WOW_SCHEMA)
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
                 change_table_schemas(conn, tables, temp_schema, WOW_SCHEMA)
 
