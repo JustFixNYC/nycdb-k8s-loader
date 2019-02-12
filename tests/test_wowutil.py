@@ -24,3 +24,6 @@ def test_it_works(db, slack_outbox):
 
     assert slack_outbox[0] == 'Rebuilding Who Owns What tables...'
     assert slack_outbox[1] == 'Finished rebuilding Who Owns What tables.'
+
+    # Ensure runing build again doesn't raise an exception.
+    wowutil.main(['build'], db_url=DATABASE_URL)
