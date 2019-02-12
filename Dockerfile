@@ -43,3 +43,4 @@ CMD ["python", "load_dataset.py"]
 
 ENV PATH /var/pydev/bin:$PATH
 ENV PYTHONPATH /var/pydev
+ENV PYTHONUNBUFFERED yup
