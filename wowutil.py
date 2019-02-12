@@ -54,6 +54,12 @@ def run_wow_sql(conn):
     conn.commit()
 
 
+def install_db_extensions(conn):
+    with conn.cursor() as cur:
+        cur.execute('CREATE EXTENSION IF NOT EXISTS pg_trgm')
+    conn.commit()
+
+
 def build(db_url: str):
     slack.sendmsg('Rebuilding Who Owns What tables...')
 
@@ -65,6 +71,7 @@ def build(db_url: str):
     ]
 
     with psycopg2.connect(db_url) as conn:
+        install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)

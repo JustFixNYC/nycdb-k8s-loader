@@ -152,7 +152,7 @@ def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
         for table in tables:
             name = f"{schema}.{table.name}"
             print(f"Dropping table '{name}' if it exists.")
-            cur.execute(f"DROP TABLE IF EXISTS {name}")
+            cur.execute(f"DROP TABLE IF EXISTS {name} CASCADE")
     conn.commit()
 
 
