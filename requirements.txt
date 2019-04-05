@@ -3,10 +3,17 @@ chardet==3.0.4
 idna==2.8
 psycopg2==2.7.6.1
 pyproj==1.9.5.1
-PyYAML>=4.2b1
 requests==2.21.0
 tqdm==4.28.1
 urllib3==1.24.1
 xlrd==1.2.0
 sqlparse==0.2.4
 docopt
+
+# We'll pin pyproj to 1.x until nycdb is more compatible w/ 2.x:
+# https://github.com/aepyornis/nyc-db/pull/86
+pyproj==1.9.5.1
+# We'll also pin PyYAML until nyc-db upgrades to not emit warnings
+# from it:
+# https://github.com/aepyornis/nyc-db/pull/86
+PyYAML==4.2b4

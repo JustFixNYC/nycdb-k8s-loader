@@ -16,7 +16,7 @@ RUN apk update && \
   rm -rf /var/cache/apk/*
 
 ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
-ARG NYCDB_REV=572a7a1240720b70c07c6caec68048039ba5ee2b
+ARG NYCDB_REV=cea1ca97adc21bc8a84791b0ccc01ba551e0f6b2
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
