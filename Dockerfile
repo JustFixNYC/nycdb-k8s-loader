@@ -1,22 +1,19 @@
-FROM python:3.6-alpine
+FROM python:3.6
 
 COPY requirements* /
 
 ARG REQUIREMENTS_FILE=requirements.txt
 
-RUN apk update && \
-  apk add postgresql-client unzip curl && \
-  apk add --virtual build-dependencies \
-    postgresql-dev \
-    gcc \
-    python3-dev \
-    musl-dev && \
-  pip install -r ${REQUIREMENTS_FILE} && \
-  apk del build-dependencies && \
-  rm -rf /var/cache/apk/*
+RUN apt-get update && \
+  apt-get install -y \
+    unzip \
+    postgresql-client && \
+  rm -rf /var/lib/apt/lists/*
 
-ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
-ARG NYCDB_REV=cea1ca97adc21bc8a84791b0ccc01ba551e0f6b2
+RUN pip install -r ${REQUIREMENTS_FILE}
+
+ARG NYCDB_REPO=https://github.com/toolness/nyc-db
+ARG NYCDB_REV=c151e2366b20050eb54d562105a3c63f5699bf1d
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
@@ -29,7 +26,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nyc-db.zip \
   && pip install -e .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=cae0b6de35eba25df3376f6e890312aa55356c98
+ARG WOW_REV=1609c51f1ddada6accf13049691d88e2e7755a07
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
