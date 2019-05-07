@@ -40,7 +40,10 @@ WOW_DIR = Path('/who-owns-what')
 
 WOW_SQL_DIR = Path(WOW_DIR / 'sql')
 
-WOW_YML = yaml.load((WOW_DIR / 'who-owns-what.yml').read_text())
+WOW_YML = yaml.load(
+    (WOW_DIR / 'who-owns-what.yml').read_text(),
+    Loader=yaml.FullLoader  # type: ignore
+)
 
 WOW_SCRIPTS: List[str] = WOW_YML['sql']
 
