@@ -12,8 +12,8 @@ RUN apt-get update && \
 
 RUN pip install -r ${REQUIREMENTS_FILE}
 
-ARG NYCDB_REPO=https://github.com/toolness/nyc-db
-ARG NYCDB_REV=c151e2366b20050eb54d562105a3c63f5699bf1d
+ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
+ARG NYCDB_REV=47fb909718fb40efb155ee0e715aeef093019dfa
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
@@ -26,7 +26,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nyc-db.zip \
   && pip install -e .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=1609c51f1ddada6accf13049691d88e2e7755a07
+ARG WOW_REV=5180baa002634ced6a01f65a5b574709f9fdaa86
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
