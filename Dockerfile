@@ -13,7 +13,7 @@ RUN apt-get update && \
 RUN pip install -r ${REQUIREMENTS_FILE}
 
 ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
-ARG NYCDB_REV=47fb909718fb40efb155ee0e715aeef093019dfa
+ARG NYCDB_REV=34a3f3e88aa07fe4444eb79bf87e4daa1b936996
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
