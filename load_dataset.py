@@ -20,7 +20,7 @@ from lib.lastmod import UrlModTracker
 from lib.dbhash import SqlDbHash
 
 
-NYCDB_DIR = Path('/nyc-db/src')
+NYCDB_DIR = Path('/nycdb/src')
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
 

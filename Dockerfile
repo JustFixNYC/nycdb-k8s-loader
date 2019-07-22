@@ -12,17 +12,17 @@ RUN apt-get update && \
 
 RUN pip install -r ${REQUIREMENTS_FILE}
 
-ARG NYCDB_REPO=https://github.com/aepyornis/nyc-db
-ARG NYCDB_REV=34a3f3e88aa07fe4444eb79bf87e4daa1b936996
+ARG NYCDB_REPO=https://github.com/nycdb/nycdb
+ARG NYCDB_REV=7547ed6979af5890a4f72a916f9a2da090fd752e
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
-RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nyc-db.zip \
-  && unzip nyc-db.zip \
-  && rm nyc-db.zip \
-  && mv nyc-db-${NYCDB_REV} nyc-db \
-  && cd nyc-db/src \
+RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
+  && unzip nycdb.zip \
+  && rm nycdb.zip \
+  && mv nycdb-${NYCDB_REV} nycdb \
+  && cd nycdb/src \
   && pip install -e .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
