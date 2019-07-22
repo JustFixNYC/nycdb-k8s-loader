@@ -71,6 +71,7 @@ DATASET_SCHEDULES: Dict[str, str] = {
     'hpd_registrations': EVERY_OTHER_DAY,
     'hpd_complaints': EVERY_OTHER_DAY,
     'dof_sales': EVERY_OTHER_DAY,
+    'pad': EVERY_OTHER_DAY,
     'acris': EVERY_OTHER_DAY
 }
 
