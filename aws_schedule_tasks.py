@@ -66,6 +66,8 @@ DEFAULT_SCHEDULE_EXPRESSION = YEARLY
 DATASET_SCHEDULES: Dict[str, str] = {
     'dobjobs': DAILY,
     'dob_complaints': DAILY,
+    'dob_violations': DAILY,
+    'ecb_violations': DAILY,
     'hpd_violations': DAILY,
     'oath_hearings': DAILY,
     'hpd_registrations': EVERY_OTHER_DAY,
