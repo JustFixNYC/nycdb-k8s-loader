@@ -50,7 +50,7 @@ a development Postgres server for you.
 Enter the development container by running:
 
 ```
-docker-compose run app sh
+docker-compose run app bash
 ```
 
 You can now develop and run the `load_dataset.py` script. The `/app`
