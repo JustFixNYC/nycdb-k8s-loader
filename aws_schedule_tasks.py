@@ -70,6 +70,7 @@ DATASET_SCHEDULES: Dict[str, str] = {
     'ecb_violations': DAILY,
     'hpd_violations': DAILY,
     'oath_hearings': DAILY,
+    'hpd_vacateorders': EVERY_OTHER_DAY,
     'hpd_registrations': EVERY_OTHER_DAY,
     'hpd_complaints': EVERY_OTHER_DAY,
     'dof_sales': EVERY_OTHER_DAY,
