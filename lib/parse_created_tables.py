@@ -2,21 +2,30 @@ from typing import List
 from pathlib import Path
 from functools import lru_cache
 import sqlparse
-from sqlparse.sql import Identifier
+from sqlparse.sql import Identifier, IdentifierList
 import nycdb
 
 
 NYCDB_SQL_DIR = Path(nycdb.__file__).parent.resolve() / 'sql'
 
 
+def get_identifiers(stmt) -> List[Identifier]:
+    identifiers: List[Identifier] = []
+    for token in stmt.tokens:
+        if isinstance(token, IdentifierList):
+            token = token.tokens[0]
+        if isinstance(token, Identifier):
+            identifiers.append(str(token.tokens[0]))
+    return identifiers
+
+
 def parse_created_tables(sql: str) -> List[str]:
     tables: List[str] = []
 
     for stmt in sqlparse.parse(sql):
-        identifiers = [
-            str(token.tokens[0]) for token in stmt.tokens
-            if isinstance(token, Identifier)
-        ]
+        for token in stmt.tokens:
+            print(repr(token), token.__class__.__name__)
+        identifiers = get_identifiers(stmt)
         keywords = [
             str(token).upper() for token in stmt.tokens
             if token.is_keyword
