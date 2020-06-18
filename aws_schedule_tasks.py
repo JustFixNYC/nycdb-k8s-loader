@@ -64,6 +64,7 @@ YEARLY = 'rate(365 days)'
 DEFAULT_SCHEDULE_EXPRESSION = YEARLY
 
 DATASET_SCHEDULES: Dict[str, str] = {
+    'oca': DAILY,
     'dobjobs': DAILY,
     'dob_complaints': DAILY,
     'dob_violations': DAILY,
