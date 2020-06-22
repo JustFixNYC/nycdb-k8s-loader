@@ -1,11 +1,10 @@
-version: '2'
+version: '3.4'
 services:
   app:
-    image: nycdb-load-dataset:boop
+    image: justfixnyc/nycdb-k8s-loader:dev
     build:
       context: .
-      args:
-        REQUIREMENTS_FILE: requirements.dev.txt
+      target: dev
     volumes:
       - .:/app
     environment:

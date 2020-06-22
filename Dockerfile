@@ -1,8 +1,4 @@
-FROM python:3.6
-
-COPY requirements* /
-
-ARG REQUIREMENTS_FILE=requirements.txt
+FROM python:3.6 AS base
 
 RUN apt-get update && \
   apt-get install -y \
@@ -10,7 +6,8 @@ RUN apt-get update && \
     postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r ${REQUIREMENTS_FILE}
+COPY requirements.txt /
+RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
 ARG NYCDB_REV=630f2d8b4322b96bcf0b145cbe306a010c03960d
@@ -32,12 +29,22 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && rm wow.zip \
   && mv who-owns-what-${WOW_REV} who-owns-what
 
-COPY . /app
+ENV PYTHONUNBUFFERED yup
 
+# Note that these won't actually work until we either mount /app as a
+# volume or copy it over. For dev, this will be done via volume mount
+# by docker-compose; for prod the directory contents will be copied over
+# in that stage.
 WORKDIR /app
-
 CMD ["python", "load_dataset.py"]
 
-ENV PATH /var/pydev/bin:$PATH
-ENV PYTHONPATH /var/pydev
-ENV PYTHONUNBUFFERED yup
+
+# Development container
+FROM base AS dev
+COPY requirements.dev.txt /
+RUN pip install -r /requirements.dev.txt
+
+
+# Production container
+FROM base AS prod
+COPY . /app
