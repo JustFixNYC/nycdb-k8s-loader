@@ -15,6 +15,6 @@ jobs:
             cp .env.example .env
             docker-compose run app pytest
       - run:
-        name: build production container
-        command: |
-          docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
+          name: build production container
+          command: |
+            docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
