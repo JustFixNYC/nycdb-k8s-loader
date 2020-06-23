@@ -6,6 +6,8 @@ jobs:
     environment:
       CLUSTER_NAME: atul-default
       AWS_DEFAULT_REGION: us-east-1
+      PROD_IMAGE: justfixnyc/nycdb-k8s-loader:latest
+      DEV_IMAGE: justfixnyc/nycdb-k8s-loader:dev
     working_directory: ~/repo
     steps:
       - checkout
@@ -17,9 +19,8 @@ jobs:
           command: |
             docker --version
             docker login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
-            docker pull justfixnyc/nycdb-k8s-loader:latest
-            docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target dev \
-              -t justfixnyc/nycdb-k8s-loader:dev .
+            docker pull ${PROD_IMAGE}
+            docker build --cache-from ${PROD_IMAGE} --target dev -t ${DEV_IMAGE} .
       - run:
           name: run tests
           command: |
@@ -30,9 +31,9 @@ jobs:
           name: build and push production container (master branch only)
           command: |
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target prod \
-                -t justfixnyc/nycdb-k8s-loader:latest .
-              docker push justfixnyc/nycdb-k8s-loader:latest
+              docker build --cache-from ${PROD_IMAGE} --cache-from ${DEV_IMAGE} \
+                --target prod -t ${PROD_IMAGE} .
+              docker push ${PROD_IMAGE}
               docker-compose run \
                 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
                 -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
