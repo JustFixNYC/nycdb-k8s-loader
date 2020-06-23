@@ -30,7 +30,8 @@ jobs:
           name: build and push production container (master branch only)
           command: |
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
+              docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target prod \
+                -t justfixnyc/nycdb-k8s-loader:latest .
               docker push justfixnyc/nycdb-k8s-loader:latest
               docker-compose run \
                 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
