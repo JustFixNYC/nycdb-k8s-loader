@@ -7,16 +7,23 @@ jobs:
     steps:
       - checkout
       - run:
-          name: run tests
+          name: build base container
           # Note that we want to run `docker build` rather than `docker-compose build`
           # here to ensure that layers are cached properly. This works around
           # https://github.com/docker/compose/issues/883.
           command: |
-            docker-compose --version
+            docker --version
+            docker login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
             docker build --target dev -t justfixnyc/nycdb-k8s-loader:dev .
-            cp .env.example .env
-            docker-compose run app pytest
+      # TODO: THE FOLLOWING COMMENTS ARE TEMPORARY
+      # - run:
+      #     name: run tests
+      #     command: |
+      #       docker-compose --version
+      #       cp .env.example .env
+      #       docker-compose run app pytest
       - run:
           name: build production container
           command: |
             docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
+            docker push justfixnyc/nycdb-k8s-loader:latest
