@@ -14,16 +14,18 @@ jobs:
           command: |
             docker --version
             docker login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
-            docker build --target dev -t justfixnyc/nycdb-k8s-loader:dev .
-      # TODO: THE FOLLOWING COMMENTS ARE TEMPORARY
-      # - run:
-      #     name: run tests
-      #     command: |
-      #       docker-compose --version
-      #       cp .env.example .env
-      #       docker-compose run app pytest
+            docker pull justfixnyc/nycdb-k8s-loader:latest
+            docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target dev -t justfixnyc/nycdb-k8s-loader:dev .
+      - run:
+          name: run tests
+          command: |
+            docker-compose --version
+            cp .env.example .env
+            docker-compose run app pytest
       - run:
           name: build production container
           command: |
-            docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
-            docker push justfixnyc/nycdb-k8s-loader:latest
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
+              docker push justfixnyc/nycdb-k8s-loader:latest
+            fi
