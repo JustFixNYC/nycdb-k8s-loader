@@ -1,12 +1,31 @@
 version: 2
 jobs:
   build:
-    machine: true
+    machine:
+      image: ubuntu-1604:202004-01
     working_directory: ~/repo
     steps:
       - checkout
       - run:
+          name: build base container
+          # Note that we want to run `docker build` rather than `docker-compose build`
+          # here to ensure that layers are cached properly. This works around
+          # https://github.com/docker/compose/issues/883.
+          command: |
+            docker --version
+            docker login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
+            docker pull justfixnyc/nycdb-k8s-loader:latest
+            docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target dev -t justfixnyc/nycdb-k8s-loader:dev .
+      - run:
           name: run tests
           command: |
+            docker-compose --version
             cp .env.example .env
             docker-compose run app pytest
+      - run:
+          name: build production container
+          command: |
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
+              docker push justfixnyc/nycdb-k8s-loader:latest
+            fi

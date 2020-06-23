@@ -7,6 +7,6 @@ spec:
     spec:
       containers:
       - name: load-dataset
-        image: nycdb-load-dataset:boop
+        image: justfixnyc/nycdb-k8s-loader:dev
       restartPolicy: Never
   backoffLimit: 4
