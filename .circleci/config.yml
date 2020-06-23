@@ -20,7 +20,6 @@ jobs:
             docker pull justfixnyc/nycdb-k8s-loader:latest
             docker build --cache-from justfixnyc/nycdb-k8s-loader:latest --target dev \
               -t justfixnyc/nycdb-k8s-loader:dev .
-      TODO: UNCOMMENT NEXT LINES
       - run:
           name: run tests
           command: |
