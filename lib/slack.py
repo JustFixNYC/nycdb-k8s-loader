@@ -61,7 +61,7 @@ def send_payload(payload: Dict[str, Any]) -> bool:
     return False
 
 
-def sendmsg(text: str, is_safe=False) -> bool:
+def sendmsg(text: str, is_safe=False, stdout=True) -> bool:
     '''
     Sends a message to Slack with the given text, formatted in the
     style described at https://api.slack.com/incoming-webhooks. It
@@ -70,7 +70,8 @@ def sendmsg(text: str, is_safe=False) -> bool:
     Returns True if the message was successfully sent, False otherwise.
     '''
 
-    print(text)
+    if stdout:
+        print(text)
     if not is_safe:
         text = escape(text)
     return send_payload({'text': text})

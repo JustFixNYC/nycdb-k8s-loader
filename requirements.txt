@@ -10,3 +10,4 @@ xlrd==1.2.0
 sqlparse==0.2.4
 docopt
 PyYAML>=5.1
+rollbar==0.15.0

@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
+from contextlib import contextmanager
 import nycdb
 import urllib.parse
 import nycdb.dataset
@@ -23,6 +24,12 @@ from lib.dbhash import SqlDbHash
 NYCDB_DIR = Path('/nycdb/src')
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
+
+
+class CommandError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
 
 class Config(NamedTuple):
@@ -94,8 +101,7 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
         if table.dataset == dataset
     ]
     if not tables:
-        print(f"'{dataset}' is not a valid dataset.")
-        sys.exit(1)
+        raise CommandError(f"'{dataset}' is not a valid dataset.")
     return tables
 
 
@@ -289,6 +295,22 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
     print("Success!")
 
 
+@contextmanager
+def error_handling(dataset: str):
+    try:
+        yield
+    except Exception as e:
+        slack.sendmsg(
+            f"Alas, an error occurred when loading the dataset `{dataset}`.",
+            stdout=not isinstance(e, CommandError)
+        )
+        if isinstance(e, CommandError):
+            print(e.message)
+            sys.exit(1)
+        else:
+            raise
+
+
 def main(argv: List[str]=sys.argv):
     sanity_check()
 
@@ -299,16 +321,14 @@ def main(argv: List[str]=sys.argv):
     if len(argv) > 1:
         dataset = argv[1]
 
-    if not dataset:
-        print(f"Usage: {argv[0]} <dataset>")
-        print(f"Alternatively, set the DATASET environment variable.")
-        sys.exit(1)
+    with error_handling(dataset):
+        if not dataset:
+            raise CommandError(
+                f"Usage: {argv[0]} <dataset>\n"
+                f"Alternatively, set the DATASET environment variable."
+            )
 
-    try:
         load_dataset(dataset)
-    except Exception as e:
-        slack.sendmsg(f"Alas, an error occurred when loading the dataset `{dataset}`.")
-        raise e
 
 
 if __name__ == '__main__':
