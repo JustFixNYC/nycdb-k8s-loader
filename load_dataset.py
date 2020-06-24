@@ -317,7 +317,7 @@ def error_handling(dataset: str):
         yield
     except Exception as e:
         if ROLLBAR_ACCESS_TOKEN:
-            rollbar.report_exc_info()
+            rollbar.report_exc_info(extra_data={'dataset': dataset})
         slack.sendmsg(
             f"Alas, an error occurred when loading the dataset `{dataset}`.",
             stdout=not isinstance(e, CommandError)
