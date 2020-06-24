@@ -8,8 +8,10 @@ import re
 from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
-import nycdb
+from contextlib import contextmanager
 import urllib.parse
+import rollbar
+import nycdb
 import nycdb.dataset
 from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
@@ -20,9 +22,18 @@ from lib.lastmod import UrlModTracker
 from lib.dbhash import SqlDbHash
 
 
+MY_DIR = Path(__file__).parent.resolve()
 NYCDB_DIR = Path('/nycdb/src')
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
+
+ROLLBAR_ACCESS_TOKEN = os.environ.get('ROLLBAR_ACCESS_TOKEN', '')
+
+
+class CommandError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
 
 class Config(NamedTuple):
@@ -94,8 +105,7 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
         if table.dataset == dataset
     ]
     if not tables:
-        print(f"'{dataset}' is not a valid dataset.")
-        sys.exit(1)
+        raise CommandError(f"'{dataset}' is not a valid dataset.")
     return tables
 
 
@@ -289,26 +299,53 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
     print("Success!")
 
 
+def init_rollbar():
+    if ROLLBAR_ACCESS_TOKEN:
+        print("Initializing Rollbar.")
+        rollbar.init(
+            access_token=ROLLBAR_ACCESS_TOKEN,
+            environment='production',
+            root=str(MY_DIR),
+            handler='blocking',
+        )
+
+
+@contextmanager
+def error_handling(dataset: str):
+    init_rollbar()
+    try:
+        yield
+    except Exception as e:
+        if ROLLBAR_ACCESS_TOKEN:
+            rollbar.report_exc_info(extra_data={'dataset': dataset})
+        slack.sendmsg(
+            f"Alas, an error occurred when loading the dataset `{dataset}`.",
+            stdout=not isinstance(e, CommandError)
+        )
+        if isinstance(e, CommandError):
+            print(e.message)
+            sys.exit(1)
+        else:
+            raise
+
+
 def main(argv: List[str]=sys.argv):
-    sanity_check()
-
-    NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
     dataset = os.environ.get('DATASET', '')
 
     if len(argv) > 1:
         dataset = argv[1]
 
-    if not dataset:
-        print(f"Usage: {argv[0]} <dataset>")
-        print(f"Alternatively, set the DATASET environment variable.")
-        sys.exit(1)
+    with error_handling(dataset):
+        sanity_check()
+        NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    try:
+        if not dataset:
+            raise CommandError(
+                f"Usage: {argv[0]} <dataset>\n"
+                f"Alternatively, set the DATASET environment variable."
+            )
+
         load_dataset(dataset)
-    except Exception as e:
-        slack.sendmsg(f"Alas, an error occurred when loading the dataset `{dataset}`.")
-        raise e
 
 
 if __name__ == '__main__':

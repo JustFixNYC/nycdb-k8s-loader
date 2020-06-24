@@ -13,6 +13,7 @@ services:
       DATASET: ${DATASET}
       SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
       TEST_DATABASE_URL: ${TEST_DATABASE_URL}
+      ROLLBAR_ACCESS_TOKEN: ${ROLLBAR_ACCESS_TOKEN}
     links:
       - db
   db:

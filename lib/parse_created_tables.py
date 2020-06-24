@@ -23,8 +23,6 @@ def parse_created_tables(sql: str) -> List[str]:
     tables: List[str] = []
 
     for stmt in sqlparse.parse(sql):
-        for token in stmt.tokens:
-            print(repr(token), token.__class__.__name__)
         identifiers = get_identifiers(stmt)
         keywords = [
             str(token).upper() for token in stmt.tokens

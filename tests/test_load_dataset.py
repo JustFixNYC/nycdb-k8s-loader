@@ -7,6 +7,7 @@ import nycdb.dataset
 from .conftest import DATABASE_URL, make_conn
 import load_dataset
 from load_dataset import (
+    CommandError,
     does_sql_create_functions,
     get_all_create_function_sql_for_dataset,
     collapse_whitespace
@@ -74,7 +75,7 @@ def test_load_dataset_fails_if_no_dataset_provided(test_db_env):
 
 
 def test_get_tables_for_dataset_raises_error_on_invalid_dataset():
-    with pytest.raises(SystemExit):
+    with pytest.raises(CommandError):
         load_dataset.get_tables_for_dataset('blarg')
 
 
