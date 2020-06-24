@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import NamedTuple, List
 from types import SimpleNamespace
 from contextlib import contextmanager
-import nycdb
 import urllib.parse
+import rollbar
+import nycdb
 import nycdb.dataset
 from nycdb.dataset import Dataset
 from nycdb.utility import list_wrap
@@ -21,9 +22,12 @@ from lib.lastmod import UrlModTracker
 from lib.dbhash import SqlDbHash
 
 
+MY_DIR = Path(__file__).parent.resolve()
 NYCDB_DIR = Path('/nycdb/src')
 TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
 NYCDB_DATA_DIR = Path('/var/nycdb')
+
+ROLLBAR_ACCESS_TOKEN = os.environ.get('ROLLBAR_ACCESS_TOKEN', '')
 
 
 class CommandError(Exception):
@@ -295,11 +299,25 @@ def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=F
     print("Success!")
 
 
+def init_rollbar():
+    if ROLLBAR_ACCESS_TOKEN:
+        print("Initializing Rollbar.")
+        rollbar.init(
+            access_token=ROLLBAR_ACCESS_TOKEN,
+            environment='production',
+            root=str(MY_DIR),
+            handler='blocking',
+        )
+
+
 @contextmanager
 def error_handling(dataset: str):
+    init_rollbar()
     try:
         yield
     except Exception as e:
+        if ROLLBAR_ACCESS_TOKEN:
+            rollbar.report_exc_info()
         slack.sendmsg(
             f"Alas, an error occurred when loading the dataset `{dataset}`.",
             stdout=not isinstance(e, CommandError)
@@ -312,16 +330,15 @@ def error_handling(dataset: str):
 
 
 def main(argv: List[str]=sys.argv):
-    sanity_check()
-
-    NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
     dataset = os.environ.get('DATASET', '')
 
     if len(argv) > 1:
         dataset = argv[1]
 
     with error_handling(dataset):
+        sanity_check()
+        NYCDB_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
         if not dataset:
             raise CommandError(
                 f"Usage: {argv[0]} <dataset>\n"
