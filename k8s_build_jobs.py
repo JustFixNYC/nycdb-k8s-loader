@@ -35,7 +35,7 @@ def main(jobs_dir: Path=JOBS_DIR):
     for dataset in datasets:
         template = yaml.load(
             JOB_TEMPLATE.read_text(),
-            Loader=yaml.FullLoader  # type: ignore
+            Loader=yaml.FullLoader
         )
         name = template['metadata']['name']
         name = f"{name}-{slugify(dataset)}"
