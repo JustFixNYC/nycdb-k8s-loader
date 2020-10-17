@@ -6,6 +6,8 @@ Usage:
   dbtool.py rowcounts <dataset>...
   dbtool.py lastmod:list <dataset>...
   dbtool.py lastmod:reset <dataset>...
+  dbtool.py user:grant_schema_read <user> <schema>
+  dbtool.py user:create <user>
 
 Options:
   -h --help     Show this screen.
@@ -21,6 +23,7 @@ import psycopg2
 import docopt
 import nycdb.dataset
 from nycdb.utility import list_wrap
+from urllib.parse import urlparse
 import nycdb.cli
 
 import load_dataset
@@ -113,6 +116,48 @@ def reset_lastmod(db_url: str, dataset_names: List[str]):
                 info.write_to_dbhash(dbhash)
 
 
+def grant_schema_read(db_url: str, user: str, schema: str):
+    print(f"Granting user '{user}' read-only access to schema '{schema}'.")
+    alter_default_privs = f'ALTER DEFAULT PRIVILEGES IN SCHEMA {schema}'
+    statements = [
+        f'GRANT USAGE ON SCHEMA {schema} TO {user}',
+        f'GRANT SELECT ON ALL TABLES IN SCHEMA {schema} TO {user}',
+        f'{alter_default_privs} GRANT SELECT ON TABLES TO {user}',
+        f'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA {schema} to {user}',
+        f'{alter_default_privs} GRANT EXECUTE ON FUNCTIONS TO {user}',
+    ]
+    with psycopg2.connect(db_url) as conn:
+        with conn.cursor() as cur:
+            for statement in statements:
+                cur.execute(statement)
+
+
+def generate_random_password(num_chars = 16) -> str:
+    # https://docs.python.org/3/library/secrets.html
+    import string
+    import secrets
+
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for i in range(num_chars))
+
+
+def create_user(db_url: str, user: str):
+    schema = "public"
+    db = urlparse(db_url).path[1:]
+    password = generate_random_password()
+    print(f"Creating user '{user}' and granting them access to the '{db}' db.")
+    print(f"Their password is '{password}'. Please keep this safe!")
+    statements = [
+        f'CREATE USER {user} WITH ENCRYPTED PASSWORD \'{password}\'',
+        f'GRANT CONNECT ON DATABASE {db} TO {user}'
+    ]
+    with psycopg2.connect(db_url) as conn:
+        with conn.cursor() as cur:
+            for statement in statements:
+                cur.execute(statement)
+    grant_schema_read(db_url, user, schema)
+
+
 def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 
@@ -128,6 +173,10 @@ def main(argv: List[str], db_url: str):
         list_lastmod(db_url, dataset_names)
     elif args['lastmod:reset']:
         reset_lastmod(db_url, dataset_names)
+    elif args['user:grant_schema_read']:
+        grant_schema_read(db_url, args['<user>'], args['<schema>'])
+    elif args['user:create']:
+        create_user(db_url, args['<user>'])
 
 
 if __name__ == '__main__':
