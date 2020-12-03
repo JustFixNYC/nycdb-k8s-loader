@@ -6,6 +6,12 @@ RUN apt-get update && \
     postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
+# The latest version of pip at the time of this writing, 20.3, results
+# in an infinite loop of "Requirement already satisfied" when
+# installing our dependencies, so we're forcibly downgrading to
+# the most recent version that works.
+RUN python -m pip install pip==20.2.4
+
 COPY requirements.txt /
 RUN pip install -r requirements.txt
 
