@@ -55,7 +55,8 @@ class Config(NamedTuple):
             host=DB_HOST,
             database=DB_NAME,
             port=str(DB_PORT),
-            root_dir=str(TEST_DATA_DIR) if self.use_test_data else str(NYCDB_DATA_DIR)
+            root_dir=str(TEST_DATA_DIR) if self.use_test_data else str(NYCDB_DATA_DIR),
+            hide_progress=False,
         )
 
 
