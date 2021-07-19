@@ -5,8 +5,10 @@ jobs:
       image: ubuntu-1604:202004-01
     environment:
       CLUSTER_NAME: atul-default
+      PLAYGROUND_CLUSTER_NAME: wow-playground
       AWS_DEFAULT_REGION: us-east-1
       PROD_IMAGE: justfixnyc/nycdb-k8s-loader:latest
+      PLAYGROUND_IMAGE: justfixnyc/nycdb-k8s-loader:wow-playground
       DEV_IMAGE: justfixnyc/nycdb-k8s-loader:dev
     working_directory: ~/repo
     steps:
@@ -34,6 +36,19 @@ jobs:
               docker build --cache-from ${PROD_IMAGE} --cache-from ${DEV_IMAGE} \
                 --target prod -t ${PROD_IMAGE} .
               docker push ${PROD_IMAGE}
+              docker-compose run \
+                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                -e AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
+                app python aws_schedule_tasks.py create ${CLUSTER_NAME}
+            fi
+      - run:
+          name: build and push wow-playground container (wow-playground branch only)
+          command: |
+            if [[ "${CIRCLE_BRANCH}" == "wow-playground" ]]; then
+              docker build --cache-from ${PLAYGROUND_IMAGE} --cache-from ${DEV_IMAGE} \
+                --target prod -t ${PLAYGROUND_IMAGE} .
+              docker push ${PLAYGROUND_IMAGE}
               docker-compose run \
                 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
                 -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
