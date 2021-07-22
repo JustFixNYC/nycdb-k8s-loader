@@ -2,8 +2,8 @@ FROM python:3.6 AS base
 
 RUN apt-get update && \
   apt-get install -y \
-    unzip \
-    postgresql-client && \
+  unzip \
+  postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
 # The latest version of pip at the time of this writing, 20.3, results
@@ -16,7 +16,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=64f1096ac3175c689fec91fd54479837e769cd1a
+ARG NYCDB_REV=1cccea098a395f5070a5589b6d13ab3cf7d1fa91
 
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
