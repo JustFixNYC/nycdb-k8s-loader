@@ -10,10 +10,10 @@ class Schedule(Enum):
     """
 
     # Daily at around midnight EST.
-    DAILY = "0 5 * * ? *"
+    DAILY = "0 5 * * ?"
 
     # Every other day around midnight EST.
-    EVERY_OTHER_DAY = '0 5 */2 * ? *'
+    EVERY_OTHER_DAY = '0 5 */2 * ?'
 
     # Once per year.
     YEARLY = "@yearly"
@@ -32,7 +32,8 @@ class Schedule(Enum):
 
         if self == Schedule.YEARLY:
             return 'rate(365 days)'
-        return f"cron({self.value})"
+        # Note the additional "*"; AWS has a sixth field that is the year.
+        return f"cron({self.value} *)"
 
     @property
     def k8s(self) -> str:

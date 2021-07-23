@@ -13,8 +13,8 @@ def test_aws_works(value, expected):
 
 
 @pytest.mark.parametrize('value,expected', [
-    (Schedule.DAILY, "0 5 * * ? *"),
-    (Schedule.EVERY_OTHER_DAY, "0 5 */2 * ? *"),
+    (Schedule.DAILY, "0 5 * * ?"),
+    (Schedule.EVERY_OTHER_DAY, "0 5 */2 * ?"),
     (Schedule.YEARLY, "@yearly"),
 ])
 def test_k8s_works(value, expected):
