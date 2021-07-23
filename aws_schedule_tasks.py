@@ -37,38 +37,13 @@ Environment variables:
   AWS_DEFAULT_REGION     The AWS region to use.
 """
 
-from typing import List, Dict
 import json
 import boto3
 import docopt
 import dotenv
-import nycdb.dataset
-from scheduling import Schedule
+from scheduling import DATASET_NAMES, get_schedule_for_dataset
 
 dotenv.load_dotenv()
-
-# The names of all valid NYC-DB datasets.
-DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
-
-# The default schedule for a dataset loader, if
-# otherwise unspecified.
-DEFAULT_SCHEDULE = Schedule.YEARLY
-
-DATASET_SCHEDULES: Dict[str, Schedule] = {
-    'oca': Schedule.DAILY,
-    'dobjobs': Schedule.DAILY,
-    'dob_complaints': Schedule.DAILY,
-    'dob_violations': Schedule.DAILY,
-    'ecb_violations': Schedule.DAILY,
-    'hpd_violations': Schedule.DAILY,
-    'oath_hearings': Schedule.DAILY,
-    'hpd_vacateorders': Schedule.EVERY_OTHER_DAY,
-    'hpd_registrations': Schedule.EVERY_OTHER_DAY,
-    'hpd_complaints': Schedule.EVERY_OTHER_DAY,
-    'dof_sales': Schedule.EVERY_OTHER_DAY,
-    'pad': Schedule.EVERY_OTHER_DAY,
-    'acris': Schedule.EVERY_OTHER_DAY
-}
 
 
 def create_input_str(container_name: str, dataset: str, use_test_data: bool):
@@ -124,7 +99,7 @@ def create_task(
     '''
 
     name = f"{prefix}{dataset}"
-    schedule_expression = DATASET_SCHEDULES.get(dataset, DEFAULT_SCHEDULE).aws
+    schedule_expression = get_schedule_for_dataset(dataset).aws
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
     client = boto3.client('events')
@@ -216,14 +191,7 @@ def create_tasks(prefix: str, args):
         )
 
 
-def sanity_check():
-    for dataset in DATASET_SCHEDULES:
-        assert dataset in DATASET_NAMES
-
-
 def main():
-    sanity_check()
-
     args = docopt.docopt(__doc__)
     prefix: str = args['--task-prefix']
 
