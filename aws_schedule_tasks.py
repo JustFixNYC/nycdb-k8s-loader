@@ -43,40 +43,31 @@ import boto3
 import docopt
 import dotenv
 import nycdb.dataset
+from scheduling import Schedule
 
 dotenv.load_dotenv()
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
 
-# Various schedule expressions. Note that all times must be specified
-# in UTC.
-#
-# For more details on schedule expressions, see:
-#
-# https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-DAILY = 'cron(0 5 * * ? *)'               # Daily at around midnight EST.
-EVERY_OTHER_DAY = 'cron(0 5 */2 * ? *)'   # Every other day around midnight EST.
-YEARLY = 'rate(365 days)'
-
-# The default schedule expression for a dataset loader, if
+# The default schedule for a dataset loader, if
 # otherwise unspecified.
-DEFAULT_SCHEDULE_EXPRESSION = YEARLY
+DEFAULT_SCHEDULE = Schedule.YEARLY
 
-DATASET_SCHEDULES: Dict[str, str] = {
-    'oca': DAILY,
-    'dobjobs': DAILY,
-    'dob_complaints': DAILY,
-    'dob_violations': DAILY,
-    'ecb_violations': DAILY,
-    'hpd_violations': DAILY,
-    'oath_hearings': DAILY,
-    'hpd_vacateorders': EVERY_OTHER_DAY,
-    'hpd_registrations': EVERY_OTHER_DAY,
-    'hpd_complaints': EVERY_OTHER_DAY,
-    'dof_sales': EVERY_OTHER_DAY,
-    'pad': EVERY_OTHER_DAY,
-    'acris': EVERY_OTHER_DAY
+DATASET_SCHEDULES: Dict[str, Schedule] = {
+    'oca': Schedule.DAILY,
+    'dobjobs': Schedule.DAILY,
+    'dob_complaints': Schedule.DAILY,
+    'dob_violations': Schedule.DAILY,
+    'ecb_violations': Schedule.DAILY,
+    'hpd_violations': Schedule.DAILY,
+    'oath_hearings': Schedule.DAILY,
+    'hpd_vacateorders': Schedule.EVERY_OTHER_DAY,
+    'hpd_registrations': Schedule.EVERY_OTHER_DAY,
+    'hpd_complaints': Schedule.EVERY_OTHER_DAY,
+    'dof_sales': Schedule.EVERY_OTHER_DAY,
+    'pad': Schedule.EVERY_OTHER_DAY,
+    'acris': Schedule.EVERY_OTHER_DAY
 }
 
 
@@ -133,7 +124,7 @@ def create_task(
     '''
 
     name = f"{prefix}{dataset}"
-    schedule_expression = DATASET_SCHEDULES.get(dataset, DEFAULT_SCHEDULE_EXPRESSION)
+    schedule_expression = DATASET_SCHEDULES.get(dataset, DEFAULT_SCHEDULE).aws
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
     client = boto3.client('events')
