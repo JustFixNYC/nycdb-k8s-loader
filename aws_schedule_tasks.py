@@ -37,47 +37,13 @@ Environment variables:
   AWS_DEFAULT_REGION     The AWS region to use.
 """
 
-from typing import List, Dict
 import json
 import boto3
 import docopt
 import dotenv
-import nycdb.dataset
+from scheduling import DATASET_NAMES, get_schedule_for_dataset
 
 dotenv.load_dotenv()
-
-# The names of all valid NYC-DB datasets.
-DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
-
-# Various schedule expressions. Note that all times must be specified
-# in UTC.
-#
-# For more details on schedule expressions, see:
-#
-# https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-DAILY = 'cron(0 5 * * ? *)'               # Daily at around midnight EST.
-EVERY_OTHER_DAY = 'cron(0 5 */2 * ? *)'   # Every other day around midnight EST.
-YEARLY = 'rate(365 days)'
-
-# The default schedule expression for a dataset loader, if
-# otherwise unspecified.
-DEFAULT_SCHEDULE_EXPRESSION = YEARLY
-
-DATASET_SCHEDULES: Dict[str, str] = {
-    'oca': DAILY,
-    'dobjobs': DAILY,
-    'dob_complaints': DAILY,
-    'dob_violations': DAILY,
-    'ecb_violations': DAILY,
-    'hpd_violations': DAILY,
-    'oath_hearings': DAILY,
-    'hpd_vacateorders': EVERY_OTHER_DAY,
-    'hpd_registrations': EVERY_OTHER_DAY,
-    'hpd_complaints': EVERY_OTHER_DAY,
-    'dof_sales': EVERY_OTHER_DAY,
-    'pad': EVERY_OTHER_DAY,
-    'acris': EVERY_OTHER_DAY
-}
 
 
 def create_input_str(container_name: str, dataset: str, use_test_data: bool):
@@ -133,7 +99,7 @@ def create_task(
     '''
 
     name = f"{prefix}{dataset}"
-    schedule_expression = DATASET_SCHEDULES.get(dataset, DEFAULT_SCHEDULE_EXPRESSION)
+    schedule_expression = get_schedule_for_dataset(dataset).aws
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
     client = boto3.client('events')
@@ -225,14 +191,7 @@ def create_tasks(prefix: str, args):
         )
 
 
-def sanity_check():
-    for dataset in DATASET_SCHEDULES:
-        assert dataset in DATASET_NAMES
-
-
 def main():
-    sanity_check()
-
     args = docopt.docopt(__doc__)
     prefix: str = args['--task-prefix']
 

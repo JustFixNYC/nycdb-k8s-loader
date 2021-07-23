@@ -70,7 +70,7 @@ introspecting the state of the NYC-DB dataset loader jobs very easy.
 You'll want to build your container image by running:
 
 ```
-docker-compose build
+docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
 ```
 
 To deploy the jobs to your Kubernetes cluster, first generate job files:
@@ -88,7 +88,7 @@ Then tell k8s to start your jobs:
 kubectl create -f ./k8s-jobs
 ```
 
-Now you can visit the "Jobs" section of your Kubernetes Dashboard to see
+Now you can visit the "Cron Jobs" section of your Kubernetes Dashboard to see
 the state of the jobs.
 
 If you want to stop the jobs, or clean them up once they're finished, run:
