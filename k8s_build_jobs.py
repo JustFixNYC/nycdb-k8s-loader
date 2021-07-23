@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 import yaml
 
+from scheduling import DATASET_NAMES, get_schedule_for_dataset
 import load_dataset
 
 
@@ -28,11 +29,7 @@ def main(jobs_dir: Path=JOBS_DIR):
     load_dataset.sanity_check()
     jobs_dir.mkdir(parents=True, exist_ok=True)
 
-    datasets = set([
-        table.dataset for table in load_dataset.get_dataset_tables()
-    ])
-
-    for dataset in datasets:
+    for dataset in DATASET_NAMES:
         template = yaml.load(
             JOB_TEMPLATE.read_text(),
             Loader=yaml.FullLoader
@@ -40,7 +37,8 @@ def main(jobs_dir: Path=JOBS_DIR):
         name = template['metadata']['name']
         name = f"{name}-{slugify(dataset)}"
         template['metadata']['name'] = name
-        c = template['spec']['template']['spec']['containers'][0]
+        template['spec']['schedule'] = get_schedule_for_dataset(dataset).k8s
+        c = template['spec']['jobTemplate']['spec']['template']['spec']['containers'][0]
         c['command'] = [
             'python',
             Path(load_dataset.__file__).name,
