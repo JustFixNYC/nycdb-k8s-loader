@@ -70,7 +70,7 @@ introspecting the state of the NYC-DB dataset loader jobs very easy.
 You'll want to build your container image by running:
 
 ```
-docker-compose build
+docker build --target prod -t justfixnyc/nycdb-k8s-loader:latest .
 ```
 
 To deploy the jobs to your Kubernetes cluster, first generate job files:
