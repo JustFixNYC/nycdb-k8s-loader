@@ -63,6 +63,13 @@ def install_db_extensions(conn):
     conn.commit()
 
 
+def populate_portfolios_table(conn):
+    import portfoliograph.table
+
+    portfoliograph.table.populate_portfolios_table(conn)
+    conn.commit()
+
+
 def build(db_url: str):
     slack.sendmsg('Rebuilding Who Owns What tables...')
 
@@ -78,6 +85,7 @@ def build(db_url: str):
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
+            populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
