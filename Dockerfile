@@ -35,6 +35,16 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && rm wow.zip \
   && mv who-owns-what-${WOW_REV} who-owns-what
 
+# This is kind of terrible. We've got a package in WoW that
+# generates our portfolio graphs, but it's not really made
+# for distribution right now (e.g. it has no `setup.py` or
+# formal list of dependencies). So here we're just "hacking"
+# it into our Python installation and manually installing its
+# dependencies, at least until we formally turn it into a
+# real Python package.
+RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.6/site-packages/portfoliograph && \
+  pip install networkx==2.5.1
+
 ENV PYTHONUNBUFFERED yup
 
 # Note that these won't actually work until we either mount /app as a
