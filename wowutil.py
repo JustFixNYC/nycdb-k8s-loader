@@ -47,6 +47,12 @@ WOW_YML = yaml.load(
 
 WOW_SCRIPTS: List[str] = WOW_YML['sql']
 
+# Note that parse_created_tables.py doesn't do a perfect job ideintifying the names 
+# of tables created in our WOW SQL Directory. 
+# 
+# This list of tuples acts as a fix for any improperly parsed table names:
+# - the first element of each tuple is the incorrect name to be replaced
+# - the second element is the correct name
 WOW_TABLE_NAME_REPLACEMENTS = [('wow_bldgs_temporary','wow_bldgs')] 
 
 def run_wow_sql(conn):
@@ -82,8 +88,9 @@ def build(db_url: str):
     ]
 
     for replacement in WOW_TABLE_NAME_REPLACEMENTS:
-        tables.remove(TableInfo(name=replacement[0], dataset=cosmetic_dataset_name))
-        tables.append(TableInfo(name=replacement[1], dataset=cosmetic_dataset_name))
+        if TableInfo(name=replacement[0], dataset=cosmetic_dataset_name) in tables:
+            tables.remove(TableInfo(name=replacement[0], dataset=cosmetic_dataset_name))
+            tables.append(TableInfo(name=replacement[1], dataset=cosmetic_dataset_name))
 
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
