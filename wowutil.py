@@ -47,6 +47,7 @@ WOW_YML = yaml.load(
 
 WOW_SCRIPTS: List[str] = WOW_YML['sql']
 
+WOW_TABLE_NAME_REPLACEMENTS = [('wow_bldgs_temporary','wow_bldgs')] 
 
 def run_wow_sql(conn):
     with conn.cursor() as cur:
@@ -79,6 +80,10 @@ def build(db_url: str):
         TableInfo(name=name, dataset=cosmetic_dataset_name)
         for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
     ]
+
+    for replacement in WOW_TABLE_NAME_REPLACEMENTS:
+        tables.remove(TableInfo(name=replacement[0], dataset=cosmetic_dataset_name))
+        tables.append(TableInfo(name=replacement[1], dataset=cosmetic_dataset_name))
 
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
