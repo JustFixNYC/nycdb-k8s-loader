@@ -47,6 +47,7 @@ WOW_YML = yaml.load(
 
 WOW_SCRIPTS: List[str] = WOW_YML['sql']
 
+
 def run_wow_sql(conn):
     with conn.cursor() as cur:
         for filename in WOW_SCRIPTS:
