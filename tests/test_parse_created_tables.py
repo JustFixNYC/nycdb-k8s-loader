@@ -48,14 +48,20 @@ def test_it_parses_create_table_statements_2():
 
 
 
-def test_it_parses_old_create_table_statements_in_wow():
-    sql = (SQL_DIR / "wow_old_create_bldgs_table.sql").read_text()
+def test_it_parses_original_create_table_statements_in_wow():
+    sql = (SQL_DIR / "wow_original_create_bldgs_table.sql").read_text()
 
     assert parse_created_tables(sql) == ['wow_bldgs']
 
 
-def test_it_parses_new_create_table_statements_in_wow():
-    sql = (SQL_DIR / "wow_new_create_bldgs_table.sql").read_text()
+def test_it_parses_2020_create_table_statements_in_wow():
+    sql = (SQL_DIR / "wow_2020_create_bldgs_table.sql").read_text()
+
+    assert parse_created_tables(sql) == ['wow_bldgs']
+
+
+def test_it_parses_2021_create_table_statements_in_wow():
+    sql = (SQL_DIR / "wow_2021_create_bldgs_table.sql").read_text()
 
     assert parse_created_tables(sql) == ['wow_bldgs']
 
