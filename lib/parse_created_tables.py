@@ -30,6 +30,13 @@ def parse_created_tables(sql: str) -> List[str]:
         ]
         if keywords[:2] == ['CREATE', 'TABLE'] and identifiers:
             tables.append(identifiers[0])
+        if (
+            keywords[:4] == ["ALTER", "TABLE", "RENAME", "TO"]
+            and identifiers
+            and identifiers[0] in tables
+        ):    
+            tables.remove(identifiers[0])
+            tables.append(identifiers[1])
 
     return tables
 
