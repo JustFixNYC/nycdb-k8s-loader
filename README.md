@@ -229,6 +229,9 @@ is essentially a shortcut for `wowutil.py build` and can be
 a convenient way to "slot in" the loading of WoW data to an
 already existing workflow for other NYCDB datasets.
 
+At the time of this update, there is a [custom scheduled ECS rule][]
+created via the AWS console that updates the `wow` dataset.
+
 [Cron Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [NYC-DB]: https://github.com/aepyornis/nyc-db
 [Kubernetes Jobs]: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
@@ -242,3 +245,4 @@ already existing workflow for other NYCDB datasets.
 [Postgres schema]: https://www.postgresql.org/docs/9.5/ddl-schemas.html
 [Who Owns What]: https://github.com/justfixnyc/who-owns-what
 [Postgres schema search path]: https://www.postgresql.org/docs/9.6/ddl-schemas.html#DDL-SCHEMAS-PATH
+[custom scheduled ECS rule]: https://console.aws.amazon.com/ecs/home?region=us-east-1#/clusters/atul-default/scheduledTasks/custom-load-wow
