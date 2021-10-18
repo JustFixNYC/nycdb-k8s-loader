@@ -199,7 +199,7 @@ To update the revision for anyone who is using the
 [`justfixnyc/nycdb-k8s-loader:latest`][] image off Docker Hub, issue a PR
 that changes the default value of the aforementioned `NYCDB_REV` argument.
 Our continuous integration system will then ensure that everything still
-works, and once the PR is merged into `master`, Docker Hub will re-publish
+works, and once the PR is merged into `main`, Docker Hub will re-publish
 a new container image that uses the latest version of NYC-DB.
 
 ## Updating Who Owns What data
@@ -241,7 +241,7 @@ created via the AWS console that updates the `wow` dataset.
 [`justfixnyc/nycdb-k8s-loader:latest`]: https://hub.docker.com/r/justfixnyc/nycdb-k8s-loader
 [aws/amazon-ecs-agent#1128]: https://github.com/aws/amazon-ecs-agent/issues/1128#issuecomment-351545461
 [Scheduled Tasks]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html
-[rev]: https://github.com/JustFixNYC/nycdb-k8s-loader/blob/master/Dockerfile#L19
+[rev]: https://github.com/JustFixNYC/nycdb-k8s-loader/blob/main/Dockerfile#L19
 [Postgres schema]: https://www.postgresql.org/docs/9.5/ddl-schemas.html
 [Who Owns What]: https://github.com/justfixnyc/who-owns-what
 [Postgres schema search path]: https://www.postgresql.org/docs/9.6/ddl-schemas.html#DDL-SCHEMAS-PATH
