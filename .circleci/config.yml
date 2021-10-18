@@ -28,9 +28,9 @@ jobs:
             cp .env.example .env
             docker-compose run app pytest
       - run:
-          name: build and push production container (master branch only)
+          name: build and push production container (main branch only)
           command: |
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+            if [[ "${CIRCLE_BRANCH}" == "main" ]]; then
               docker build --cache-from ${PROD_IMAGE} --cache-from ${DEV_IMAGE} \
                 --target prod -t ${PROD_IMAGE} .
               docker push ${PROD_IMAGE}
