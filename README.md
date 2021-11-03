@@ -2,7 +2,8 @@
 
 This repository was created to explore the possibility of
 populating a [NYC-DB][] instance via [Kubernetes Jobs][]
-or [Amazon Fargate][].
+or [Amazon Fargate][]. The current Justfix deployment uses Amazon
+Fargate and is currently powering NYCDB and Who Owns What.
 
 There are a few potential advantages to this approach:
 

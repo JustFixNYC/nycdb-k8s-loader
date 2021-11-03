@@ -19,6 +19,7 @@ import docopt
 import psycopg2
 import yaml
 
+from algoliasearch.search_client import SearchClient
 from lib import slack
 from lib.parse_created_tables import parse_created_tables_in_dir
 from load_dataset import (
@@ -69,6 +70,24 @@ def populate_portfolios_table(conn):
     portfoliograph.table.populate_portfolios_table(conn)
     conn.commit()
 
+def update_landlords_index(conn):
+    # try updating one record via algolia
+    ALGOLIA_APP_ID = os.environ.get('ALGOLIA_APP_ID', '')
+    ALGOLIA_API_KEY = os.environ.get('ALGOLIA_API_KEY', '')
+    ALGOLIA_INDEX_NAME = os.environ.get('ALGOLIA_INDEX_NAME', '')
+    client = SearchClient.create(ALGOLIA_APP_ID, ALGOLIA_API_KEY)
+    index = client.init_index(ALGOLIA_INDEX_NAME)
+
+    res = index.search('')
+    print("current objects: ", res['hits'])
+
+    # check if landlords have changed (several ways to do this- ask Sam)
+    # run sql like sam did to generate that list of landlords
+    # write the results out in a csv or json string
+        # format: [ { "landlord_names": "ANTONIO CASTRO, SARAH PICCONE", portfolio_bbl: 1008960014}]
+    # upload that csv/json string to algolia w/
+
+
 
 def build(db_url: str):
     slack.sendmsg('Rebuilding Who Owns What tables...')
@@ -86,6 +105,7 @@ def build(db_url: str):
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
             populate_portfolios_table(conn)
+            update_landlords_index(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
