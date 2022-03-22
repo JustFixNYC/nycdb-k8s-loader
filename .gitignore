@@ -1,5 +1,6 @@
 __pycache__/
 .mypy_cache/
+.digitalocean/
 k8s-jobs/
 .env
 venv/
