@@ -10,4 +10,4 @@ spec:
           containers:
           - name: load-dataset
           restartPolicy: Never
-      backoffLimit: 4
+      backoffLimit: 0
