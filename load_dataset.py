@@ -255,6 +255,45 @@ def get_dbhash(conn) -> SqlDbHash:
     return SqlDbHash(conn, "nycdb_k8s_loader.dbhash")
 
 
+def reset_files_if_test(dataset: Dataset, config: Config = Config()) -> Dataset:
+    """
+    Some nycdb datasets have a very large number of individual files, and only a
+    few are included in the test data, so if load_dataset is being run as part of
+    the test suite we need to edit the Dataset so that the files match those in the
+    test data. Otherwise, all of the files not included in the test data will be
+    downloaded in full and loaded into the DB as part of the tests.
+    """
+    if not config.use_test_data:
+        return dataset
+
+    if dataset.name == "dof_annual_sales":
+        dataset.files = [
+            nycdb.file.File(
+                {
+                    "dest": "dof_annual_sales_2020_manhattan.xlsx",
+                    "url": "https://www1.nyc.gov/assets/finance/downloads/pdf/rolling_sales/annualized-sales/2020/2020_manhattan.xlsx",
+                },
+                root_dir=str(TEST_DATA_DIR),
+            ),
+            nycdb.file.File(
+                {
+                    "dest": "dof_annual_sales_2015_manhattan.xls",
+                    "url": "https://www1.nyc.gov/assets/finance/downloads/pdf/rolling_sales/annualized-sales/2015/2015_manhattan.xls",
+                },
+                root_dir=str(TEST_DATA_DIR),
+            ),
+        ]
+    elif dataset.name == "dof_421":
+        dataset.files = [
+            nycdb.file.File(
+                {"dest": "421a_2021_brooklyn.xlsx", "url": "https://example.com"},
+                root_dir=str(TEST_DATA_DIR),
+            )
+        ]
+
+    return dataset
+
+
 def load_dataset(
     dataset: str, config: Config = Config(), force_check_urls: bool = False
 ):
@@ -274,6 +313,7 @@ def load_dataset(
 
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=config.nycdb_args)
+    ds = reset_files_if_test(ds, config)
     ds.setup_db()
     conn = ds.db.conn
 
