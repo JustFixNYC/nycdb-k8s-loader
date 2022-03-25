@@ -6,7 +6,7 @@ from sqlparse.sql import Identifier, IdentifierList
 import nycdb
 
 
-NYCDB_SQL_DIR = Path(nycdb.__file__).parent.resolve() / 'sql'
+NYCDB_SQL_DIR = Path(nycdb.__file__).parent.resolve() / "sql"
 
 
 def get_identifiers(stmt) -> List[Identifier]:
@@ -24,17 +24,14 @@ def parse_created_tables(sql: str) -> List[str]:
 
     for stmt in sqlparse.parse(sql):
         identifiers = get_identifiers(stmt)
-        keywords = [
-            str(token).upper() for token in stmt.tokens
-            if token.is_keyword
-        ]
-        if keywords[:2] == ['CREATE', 'TABLE'] and identifiers:
+        keywords = [str(token).upper() for token in stmt.tokens if token.is_keyword]
+        if keywords[:2] == ["CREATE", "TABLE"] and identifiers:
             tables.append(identifiers[0])
         if (
             keywords[:4] == ["ALTER", "TABLE", "RENAME", "TO"]
             and identifiers
             and identifiers[0] in tables
-        ):    
+        ):
             tables.remove(identifiers[0])
             tables.append(identifiers[1])
 

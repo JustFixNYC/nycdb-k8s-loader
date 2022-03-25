@@ -30,22 +30,19 @@ from load_dataset import (
     change_table_schemas,
     run_sql_if_nonempty,
     get_all_create_function_sql,
-    TableInfo
+    TableInfo,
 )
 
 
-WOW_SCHEMA = 'wow'
+WOW_SCHEMA = "wow"
 
-WOW_DIR = Path('/who-owns-what')
+WOW_DIR = Path("/who-owns-what")
 
-WOW_SQL_DIR = Path(WOW_DIR / 'sql')
+WOW_SQL_DIR = Path(WOW_DIR / "sql")
 
-WOW_YML = yaml.load(
-    (WOW_DIR / 'who-owns-what.yml').read_text(),
-    Loader=yaml.FullLoader
-)
+WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.FullLoader)
 
-WOW_SCRIPTS: List[str] = WOW_YML['sql']
+WOW_SCRIPTS: List[str] = WOW_YML["sql"]
 
 
 def run_wow_sql(conn):
@@ -59,7 +56,7 @@ def run_wow_sql(conn):
 
 def install_db_extensions(conn):
     with conn.cursor() as cur:
-        cur.execute('CREATE EXTENSION IF NOT EXISTS pg_trgm')
+        cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     conn.commit()
 
 
@@ -71,9 +68,9 @@ def populate_portfolios_table(conn):
 
 
 def build(db_url: str):
-    slack.sendmsg('Rebuilding Who Owns What tables...')
+    slack.sendmsg("Rebuilding Who Owns What tables...")
 
-    cosmetic_dataset_name = 'wow'
+    cosmetic_dataset_name = "wow"
 
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
@@ -100,17 +97,19 @@ def build(db_url: str):
         # may not be found or might even crash!
         print(f"Re-running CREATE FUNCTION statements in the {WOW_SCHEMA} schema...")
         sql = get_all_create_function_sql(WOW_SQL_DIR, WOW_SCRIPTS)
-        run_sql_if_nonempty(conn, sql, initial_sql=f'SET search_path TO {WOW_SCHEMA}, public')
+        run_sql_if_nonempty(
+            conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
+        )
 
-    slack.sendmsg('Finished rebuilding Who Owns What tables.')
+    slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
 
 def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 
-    if args['build']:
+    if args["build"]:
         build(db_url)
 
 
-if __name__ == '__main__':
-    main(argv=sys.argv[1:], db_url=os.environ['DATABASE_URL'])
+if __name__ == "__main__":
+    main(argv=sys.argv[1:], db_url=os.environ["DATABASE_URL"])

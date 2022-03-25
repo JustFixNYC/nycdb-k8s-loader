@@ -13,7 +13,7 @@ class Schedule(Enum):
     DAILY = "0 5 * * ?"
 
     # Every other day around midnight EST.
-    EVERY_OTHER_DAY = '0 5 */2 * ?'
+    EVERY_OTHER_DAY = "0 5 */2 * ?"
 
     # Once per year.
     YEARLY = "@yearly"
@@ -31,7 +31,7 @@ class Schedule(Enum):
         """
 
         if self == Schedule.YEARLY:
-            return 'rate(365 days)'
+            return "rate(365 days)"
         # Note the additional "*"; AWS has a sixth field that is the year.
         return f"cron({self.value} *)"
 
@@ -56,20 +56,20 @@ DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
 DEFAULT_SCHEDULE = Schedule.YEARLY
 
 DATASET_SCHEDULES: Dict[str, Schedule] = {
-    'oca': Schedule.DAILY,
-    'dobjobs': Schedule.DAILY,
-    'dob_complaints': Schedule.DAILY,
-    'dob_violations': Schedule.DAILY,
-    'ecb_violations': Schedule.DAILY,
-    'hpd_violations': Schedule.DAILY,
-    'oath_hearings': Schedule.DAILY,
-    'marshal_evictions': Schedule.DAILY,
-    'hpd_vacateorders': Schedule.EVERY_OTHER_DAY,
-    'hpd_registrations': Schedule.EVERY_OTHER_DAY,
-    'hpd_complaints': Schedule.EVERY_OTHER_DAY,
-    'dof_sales': Schedule.EVERY_OTHER_DAY,
-    'pad': Schedule.EVERY_OTHER_DAY,
-    'acris': Schedule.EVERY_OTHER_DAY
+    "oca": Schedule.DAILY,
+    "dobjobs": Schedule.DAILY,
+    "dob_complaints": Schedule.DAILY,
+    "dob_violations": Schedule.DAILY,
+    "ecb_violations": Schedule.DAILY,
+    "hpd_violations": Schedule.DAILY,
+    "oath_hearings": Schedule.DAILY,
+    "marshal_evictions": Schedule.DAILY,
+    "hpd_vacateorders": Schedule.EVERY_OTHER_DAY,
+    "hpd_registrations": Schedule.EVERY_OTHER_DAY,
+    "hpd_complaints": Schedule.EVERY_OTHER_DAY,
+    "dof_sales": Schedule.EVERY_OTHER_DAY,
+    "pad": Schedule.EVERY_OTHER_DAY,
+    "acris": Schedule.EVERY_OTHER_DAY,
 }
 
 
@@ -79,7 +79,9 @@ def get_schedule_for_dataset(dataset: str) -> Schedule:
 
 def sanity_check():
     for dataset in DATASET_SCHEDULES:
-        assert dataset in DATASET_NAMES, f"'{dataset}' must be a valid NYCDB dataset name"
+        assert (
+            dataset in DATASET_NAMES
+        ), f"'{dataset}' must be a valid NYCDB dataset name"
 
 
 sanity_check()

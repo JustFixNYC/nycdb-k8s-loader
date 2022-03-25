@@ -47,40 +47,42 @@ dotenv.load_dotenv()
 
 
 def create_input_str(container_name: str, dataset: str, use_test_data: bool):
-    '''
+    """
     Create the JSON-encoded input string that specifies
     the environment variables to pass to the given dataset-loading
     container.
-    '''
+    """
 
-    return json.dumps({
-        'containerOverrides': [{
-            'name': container_name,
-            'environment': [{
-                'name': 'DATASET',
-                'value': dataset
-            }, {
-                'name': 'USE_TEST_DATA',
-                'value': 'yup' if use_test_data else ''
-            }]
-        }]
-    })
+    return json.dumps(
+        {
+            "containerOverrides": [
+                {
+                    "name": container_name,
+                    "environment": [
+                        {"name": "DATASET", "value": dataset},
+                        {
+                            "name": "USE_TEST_DATA",
+                            "value": "yup" if use_test_data else "",
+                        },
+                    ],
+                }
+            ]
+        }
+    )
 
 
 def delete_tasks(prefix: str):
-    '''
+    """
     Delete the scheduled tasks with the given prefix, if they exist.
-    '''
+    """
 
-    client = boto3.client('events')
+    client = boto3.client("events")
     response = client.list_rules(NamePrefix=prefix)
-    for rule in response['Rules']:
-        name = rule['Name']
-        targets = client.list_targets_by_rule(Rule=name)['Targets']
+    for rule in response["Rules"]:
+        name = rule["Name"]
+        targets = client.list_targets_by_rule(Rule=name)["Targets"]
         print(f"Deleting rule '{name}'.")
-        client.remove_targets(Rule=name, Ids=[
-            target['Id'] for target in targets
-        ])
+        client.remove_targets(Rule=name, Ids=[target["Id"] for target in targets])
         client.delete_rule(Name=name)
 
 
@@ -92,91 +94,93 @@ def create_task(
     cluster_arn: str,
     task_arn: str,
     container_name: str,
-    subnet: str
+    subnet: str,
 ):
-    '''
+    """
     Create a scheduled task for the given dataset.
-    '''
+    """
 
     name = f"{prefix}{dataset}"
     schedule_expression = get_schedule_for_dataset(dataset).aws
 
     print(f"Creating rule '{name}' with schedule {schedule_expression}.")
-    client = boto3.client('events')
+    client = boto3.client("events")
     client.put_rule(
         Name=name,
         ScheduleExpression=schedule_expression,
         State="ENABLED",
         Description=f"Load the dataset '{dataset}' into NYC-DB.",
-        RoleArn=role_arn
+        RoleArn=role_arn,
     )
 
     target_id = dataset
     input_str = create_input_str(
-        container_name=container_name,
-        dataset=dataset,
-        use_test_data=use_test_data
+        container_name=container_name, dataset=dataset, use_test_data=use_test_data
     )
     print(f"Creating target '{target_id}'.")
     client.put_targets(
         Rule=name,
-        Targets=[{
-            "Id": target_id,
-            "Arn": cluster_arn,
-            "RoleArn": role_arn,
-            "Input": input_str,
-            "EcsParameters": {
-                "TaskDefinitionArn": task_arn,
-                "TaskCount": 1,
-                "LaunchType": "FARGATE",
-                "NetworkConfiguration": {
-                    "awsvpcConfiguration": {
-                        "Subnets": [subnet],
-                        "SecurityGroups": [],
-                        "AssignPublicIp": "ENABLED"
-                    }
+        Targets=[
+            {
+                "Id": target_id,
+                "Arn": cluster_arn,
+                "RoleArn": role_arn,
+                "Input": input_str,
+                "EcsParameters": {
+                    "TaskDefinitionArn": task_arn,
+                    "TaskCount": 1,
+                    "LaunchType": "FARGATE",
+                    "NetworkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "Subnets": [subnet],
+                            "SecurityGroups": [],
+                            "AssignPublicIp": "ENABLED",
+                        }
+                    },
+                    "PlatformVersion": "LATEST",
                 },
-                "PlatformVersion": "LATEST"
             }
-        }]
+        ],
     )
 
 
 def create_tasks(prefix: str, args):
-    '''
+    """
     Create or update the scheduled tasks.
-    '''
+    """
 
-    ecs_events_role: str = args['--ecs-events-role']
+    ecs_events_role: str = args["--ecs-events-role"]
     print(f"Obtaining ARN for role '{ecs_events_role}'")
-    iam = boto3.client('iam')
-    role_arn = iam.get_role(RoleName=ecs_events_role)['Role']['Arn']
+    iam = boto3.client("iam")
+    role_arn = iam.get_role(RoleName=ecs_events_role)["Role"]["Arn"]
 
-    cluster_name: str = args['<cluster-name>']
+    cluster_name: str = args["<cluster-name>"]
     print(f"Obtaining cluster information for {cluster_name}.")
-    ecs = boto3.client('ecs')
+    ecs = boto3.client("ecs")
     clusters = ecs.describe_clusters(clusters=[cluster_name])
-    cluster_arn: str = clusters['clusters'][0]['clusterArn']
+    cluster_arn: str = clusters["clusters"][0]["clusterArn"]
     print(f"Found cluster {cluster_arn}.")
 
     print(f"Obtaining VPC and subnet info for cluster {cluster_name}.")
-    ec2 = boto3.resource('ec2')
-    vpc = list(ec2.vpcs.filter(Filters=[{
-        'Name': 'tag:Name',
-        'Values': [f'ECS {cluster_name} - VPC']
-    }]).all())[0]
+    ec2 = boto3.resource("ec2")
+    vpc = list(
+        ec2.vpcs.filter(
+            Filters=[{"Name": "tag:Name", "Values": [f"ECS {cluster_name} - VPC"]}]
+        ).all()
+    )[0]
     subnet: str = list(vpc.subnets.all())[0].id
     print(f"Found VPC {vpc.id} and subnet {subnet}.")
 
-    task_definition: str = args['--task-definition']
+    task_definition: str = args["--task-definition"]
     print(f"Obtaining task definition for {task_definition}.")
-    task = ecs.describe_task_definition(
-        taskDefinition=task_definition)['taskDefinition']
-    task_arn = task['taskDefinitionArn']
-    container_name = task['containerDefinitions'][0]['name']
+    task = ecs.describe_task_definition(taskDefinition=task_definition)[
+        "taskDefinition"
+    ]
+    task_arn = task["taskDefinitionArn"]
+    container_name = task["containerDefinitions"][0]["name"]
     print(f"Found {task_arn} with container {container_name}.")
 
-    use_test_data: bool = args['--use-test-data']
+    use_test_data: bool = args["--use-test-data"]
 
     for dataset in DATASET_NAMES:
         create_task(
@@ -187,19 +191,19 @@ def create_tasks(prefix: str, args):
             cluster_arn=cluster_arn,
             task_arn=task_arn,
             container_name=container_name,
-            subnet=subnet
+            subnet=subnet,
         )
 
 
 def main():
     args = docopt.docopt(__doc__)
-    prefix: str = args['--task-prefix']
+    prefix: str = args["--task-prefix"]
 
-    if args['create']:
+    if args["create"]:
         create_tasks(prefix, args)
-    elif args['delete']:
+    elif args["delete"]:
         delete_tasks(prefix)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
