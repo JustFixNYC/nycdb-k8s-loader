@@ -23,11 +23,11 @@ from lib.dbhash import SqlDbHash
 
 
 MY_DIR = Path(__file__).parent.resolve()
-NYCDB_DIR = Path("/nycdb/src")
-TEST_DATA_DIR = NYCDB_DIR / "tests" / "integration" / "data"
-NYCDB_DATA_DIR = Path("/var/nycdb")
+NYCDB_DIR = Path('/nycdb/src')
+TEST_DATA_DIR = NYCDB_DIR / 'tests' / 'integration' / 'data'
+NYCDB_DATA_DIR = Path('/var/nycdb')
 
-ROLLBAR_ACCESS_TOKEN = os.environ.get("ROLLBAR_ACCESS_TOKEN", "")
+ROLLBAR_ACCESS_TOKEN = os.environ.get('ROLLBAR_ACCESS_TOKEN', '')
 
 
 class CommandError(Exception):
@@ -37,8 +37,8 @@ class CommandError(Exception):
 
 
 class Config(NamedTuple):
-    database_url: str = os.environ["DATABASE_URL"]
-    use_test_data: bool = bool(os.environ.get("USE_TEST_DATA", ""))
+    database_url: str = os.environ['DATABASE_URL']
+    use_test_data: bool = bool(os.environ.get('USE_TEST_DATA', ''))
 
     @property
     def nycdb_args(self):
@@ -66,16 +66,16 @@ class TableInfo(NamedTuple):
 
 
 def create_temp_schema_name(dataset: str) -> str:
-    return f"{get_temp_schema_prefix(dataset)}{int(time.time())}"
+    return f'{get_temp_schema_prefix(dataset)}{int(time.time())}'
 
 
 def get_temp_schema_prefix(dataset: str) -> str:
-    return f"temp_{dataset}_"
+    return f'temp_{dataset}_'
 
 
 def get_friendly_temp_schema_creation_time(name: str) -> str:
-    t = time.gmtime(int(name.split("_")[-1]))
-    return time.strftime("%Y-%m-%d %H:%M:%S", t) + " UTC"
+    t = time.gmtime(int(name.split('_')[-1]))
+    return time.strftime('%Y-%m-%d %H:%M:%S', t) + ' UTC'
 
 
 def get_temp_schemas(conn, dataset: str) -> List[str]:
@@ -91,35 +91,38 @@ def get_temp_schemas(conn, dataset: str) -> List[str]:
 def get_dataset_tables() -> List[TableInfo]:
     result: List[TableInfo] = []
     for dataset_name, info in nycdb.dataset.datasets().items():
-        for schema in list_wrap(info["schema"]):
-            result.append(TableInfo(name=schema["table_name"], dataset=dataset_name))
-        result.extend(
-            [
-                TableInfo(name=name, dataset=dataset_name)
-                for name in parse_nycdb_created_tables(info.get("sql", []))
-            ]
-        )
+        for schema in list_wrap(info['schema']):
+            result.append(TableInfo(name=schema['table_name'], dataset=dataset_name))
+        result.extend([
+            TableInfo(name=name, dataset=dataset_name)
+            for name in parse_nycdb_created_tables(info.get('sql', []))
+        ])
     return result
 
 
 def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
-    tables = [table for table in get_dataset_tables() if table.dataset == dataset]
+    tables = [
+        table for table in get_dataset_tables()
+        if table.dataset == dataset
+    ]
     if not tables:
         raise CommandError(f"'{dataset}' is not a valid dataset.")
     return tables
 
 
 def get_urls_for_dataset(dataset: str) -> List[str]:
-    return [fileinfo["url"] for fileinfo in nycdb.dataset.datasets()[dataset]["files"]]
+    return [
+        fileinfo['url'] for fileinfo in nycdb.dataset.datasets()[dataset]['files']
+    ]
 
 
 def get_all_create_function_sql(root_dir: Path, sql_files: List[str]) -> str:
-    """
+    '''
     Given the SQL files in the given root directory, concatenate the
     contents of only the ones that contain "CREATE OR REPLACE FUNCTION"
     SQL statements. It's assumed that these particular SQL files are
     idempotent.
-    """
+    '''
 
     sqls: List[str] = []
 
@@ -128,17 +131,17 @@ def get_all_create_function_sql(root_dir: Path, sql_files: List[str]) -> str:
         if does_sql_create_functions(sql):
             sqls.append(sql)
 
-    return "\n".join(sqls)
+    return '\n'.join(sqls)
 
 
 def get_all_create_function_sql_for_dataset(dataset: str) -> str:
     return get_all_create_function_sql(
-        root_dir=Path(nycdb.__file__).parent.resolve() / "sql",
-        sql_files=nycdb.dataset.datasets()[dataset].get("sql", []),
+        root_dir=Path(nycdb.__file__).parent.resolve() / 'sql',
+        sql_files=nycdb.dataset.datasets()[dataset].get('sql', [])
     )
 
 
-def run_sql_if_nonempty(conn, sql: str, initial_sql: str = ""):
+def run_sql_if_nonempty(conn, sql: str, initial_sql: str = ''):
     if sql:
         with conn.cursor() as cur:
             if initial_sql:
@@ -148,11 +151,11 @@ def run_sql_if_nonempty(conn, sql: str, initial_sql: str = ""):
 
 
 def collapse_whitespace(text: str) -> str:
-    return re.sub(r"\W+", " ", text)
+    return re.sub(r'\W+', ' ', text)
 
 
 def does_sql_create_functions(sql: str) -> bool:
-    return "CREATE OR REPLACE FUNCTION" in collapse_whitespace(sql).upper()
+    return 'CREATE OR REPLACE FUNCTION' in collapse_whitespace(sql).upper()
 
 
 def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
@@ -166,25 +169,25 @@ def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
 
 @contextlib.contextmanager
 def save_and_reapply_permissions(conn, tables: List[TableInfo], schema: str):
-    """
+    '''
     Holy hell this is annoying. See this issue for details:
     https://github.com/JustFixNYC/nycdb-k8s-loader/issues/5
-    """
+    '''
 
     # Create blank placeholder tables if they don't already exist,
     # so that any users with default privileges in our schema
     # have expected permissions on them.
-    create_blank_tables = ";".join(
-        [f"CREATE TABLE IF NOT EXISTS {schema}.{table.name} ()" for table in tables]
-    )
+    create_blank_tables = ';'.join([
+        f'CREATE TABLE IF NOT EXISTS {schema}.{table.name} ()'
+        for table in tables
+    ])
     with conn.cursor() as cur:
         cur.execute(create_blank_tables)
     conn.commit()
 
     # Now remember the permissions on the tables.
-    grants = "".join(
-        db_perms.get_grant_sql(conn, table.name, schema) for table in tables
-    )
+    grants = ''.join(db_perms.get_grant_sql(conn, table.name, schema)
+                     for table in tables)
 
     # Let the code inside our "with" clause run. It will likely
     # drop the tables and replace them with new ones that have
@@ -205,18 +208,14 @@ def ensure_schema_exists(conn, schema: str):
 def create_and_enter_temporary_schema(conn, schema: str):
     print(f"Creating and entering temporary schema '{schema}'.")
     with conn.cursor() as cur:
-        cur.execute(
-            "; ".join(
-                [
-                    f"DROP SCHEMA IF EXISTS {schema} CASCADE",
-                    f"CREATE SCHEMA {schema}",
-                    # Note that we still need public at the end of the search
-                    # path since we want functions like first(), which are
-                    # declared in the public schema, to work.
-                    f"SET search_path TO {schema}, public",
-                ]
-            )
-        )
+         cur.execute('; '.join([
+             f"DROP SCHEMA IF EXISTS {schema} CASCADE",
+             f"CREATE SCHEMA {schema}",
+             # Note that we still need public at the end of the search
+             # path since we want functions like first(), which are
+             # declared in the public schema, to work.
+             f"SET search_path TO {schema}, public"
+         ]))
     conn.commit()
 
     try:
@@ -227,17 +226,14 @@ def create_and_enter_temporary_schema(conn, schema: str):
     finally:
         print(f"Destroying temporary schema '{schema}'.")
         with conn.cursor() as cur:
-            cur.execute(
-                "; ".join(
-                    [f"DROP SCHEMA {schema} CASCADE", f"SET search_path TO public"]
-                )
-            )
+            cur.execute('; '.join([
+                f'DROP SCHEMA {schema} CASCADE',
+                f'SET search_path TO public'
+            ]))
         conn.commit()
 
 
-def change_table_schemas(
-    conn, tables: List[TableInfo], from_schema: str, to_schema: str
-):
+def change_table_schemas(conn, tables: List[TableInfo], from_schema: str, to_schema: str):
     with conn.cursor() as cur:
         for table in tables:
             name = f"{from_schema}.{table.name}"
@@ -251,8 +247,8 @@ def sanity_check():
 
 
 def get_dbhash(conn) -> SqlDbHash:
-    ensure_schema_exists(conn, "nycdb_k8s_loader")
-    return SqlDbHash(conn, "nycdb_k8s_loader.dbhash")
+    ensure_schema_exists(conn, 'nycdb_k8s_loader')
+    return SqlDbHash(conn, 'nycdb_k8s_loader.dbhash')
 
 
 def reset_files_if_test(dataset: Dataset, config: Config = Config()) -> Dataset:
@@ -294,20 +290,17 @@ def reset_files_if_test(dataset: Dataset, config: Config = Config()) -> Dataset:
     return dataset
 
 
-def load_dataset(
-    dataset: str, config: Config = Config(), force_check_urls: bool = False
-):
-    """
+def load_dataset(dataset: str, config: Config=Config(), force_check_urls: bool=False):
+    '''
     Load the given dataset using the given configuration.
 
     Note that `force_check_urls` is only used by the test suite. This is a
     bad code smell, but unfortunately it was the easiest way to test the URL-checking
     functionality with test data.
-    """
+    '''
 
-    if dataset == "wow":
+    if dataset == 'wow':
         import wowutil
-
         wowutil.build(config.database_url)
         return
 
@@ -322,23 +315,19 @@ def load_dataset(
 
     check_urls = (not config.use_test_data) or force_check_urls
     if check_urls and not modtracker.did_any_urls_change():
-        slack.sendmsg(
-            f"The dataset `{dataset}` has not changed since we last retrieved it."
-        )
+        slack.sendmsg(f'The dataset `{dataset}` has not changed since we last retrieved it.')
         return
 
-    slack.sendmsg(f"Downloading the dataset `{dataset}`...")
+    slack.sendmsg(f'Downloading the dataset `{dataset}`...')
     ds.download_files()
 
-    slack.sendmsg(
-        f"Downloaded the dataset `{dataset}`. Loading it into the database..."
-    )
+    slack.sendmsg(f'Downloaded the dataset `{dataset}`. Loading it into the database...')
     temp_schema = create_temp_schema_name(dataset)
     with create_and_enter_temporary_schema(conn, temp_schema):
         ds.db_import()
-        with save_and_reapply_permissions(conn, tables, "public"):
-            drop_tables_if_they_exist(conn, tables, "public")
-            change_table_schemas(conn, tables, temp_schema, "public")
+        with save_and_reapply_permissions(conn, tables, 'public'):
+            drop_tables_if_they_exist(conn, tables, 'public')
+            change_table_schemas(conn, tables, temp_schema, 'public')
 
     # The dataset's tables are ready, but any functions defined by the
     # dataset's custom SQL were in the temporary schema that just got
@@ -347,7 +336,7 @@ def load_dataset(
     run_sql_if_nonempty(conn, get_all_create_function_sql_for_dataset(dataset))
 
     modtracker.update_lastmods()
-    slack.sendmsg(f"Finished loading the dataset `{dataset}` into the database.")
+    slack.sendmsg(f'Finished loading the dataset `{dataset}` into the database.')
     print("Success!")
 
 
@@ -356,9 +345,9 @@ def init_rollbar():
         print("Initializing Rollbar.")
         rollbar.init(
             access_token=ROLLBAR_ACCESS_TOKEN,
-            environment="production",
+            environment='production',
             root=str(MY_DIR),
-            handler="blocking",
+            handler='blocking',
         )
 
 
@@ -369,10 +358,10 @@ def error_handling(dataset: str):
         yield
     except Exception as e:
         if ROLLBAR_ACCESS_TOKEN:
-            rollbar.report_exc_info(extra_data={"dataset": dataset})
+            rollbar.report_exc_info(extra_data={'dataset': dataset})
         slack.sendmsg(
             f"Alas, an error occurred when loading the dataset `{dataset}`.",
-            stdout=not isinstance(e, CommandError),
+            stdout=not isinstance(e, CommandError)
         )
         if isinstance(e, CommandError):
             print(e.message)
@@ -381,8 +370,8 @@ def error_handling(dataset: str):
             raise
 
 
-def main(argv: List[str] = sys.argv):
-    dataset = os.environ.get("DATASET", "")
+def main(argv: List[str]=sys.argv):
+    dataset = os.environ.get('DATASET', '')
 
     if len(argv) > 1:
         dataset = argv[1]
@@ -400,5 +389,5 @@ def main(argv: List[str] = sys.argv):
         load_dataset(dataset)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
