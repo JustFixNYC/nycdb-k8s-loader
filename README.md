@@ -111,7 +111,7 @@ which supports scheduled tasks. Here are some guidelines:
 * You can set your Task's container image to
   [`justfixnyc/nycdb-k8s-loader:latest`][] and set the environment
   variables as per the documentation in the
-  [`.env.example`](.env.example) file.
+  [`.env.example`](https://github.com/JustFixNYC/nycdb-k8s-loader/blob/b963ffb5d1dc6fe610c8ec8ad6b1c907f3c17973/.env.example) file.
 
 * When running the Task, you'll want to set "Auto-assign public IP"
   to `ENABLED`: even though the container doesn't need to be
