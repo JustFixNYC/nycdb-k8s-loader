@@ -6,7 +6,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import pytest
 
-DATABASE_URL = os.environ['TEST_DATABASE_URL']
+DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 
 DB_INFO = urllib.parse.urlparse(DATABASE_URL)
 DB_PORT = DB_INFO.port or 5432
@@ -16,17 +16,13 @@ DB_USER = DB_INFO.username
 DB_PASSWORD = DB_INFO.password
 
 CONNECT_ARGS = dict(
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    database=DB_NAME,
-    port=DB_PORT
+    user=DB_USER, password=DB_PASSWORD, host=DB_HOST, database=DB_NAME, port=DB_PORT
 )
 
 
 def exec_outside_of_transaction(sql: str):
     args = CONNECT_ARGS.copy()
-    del args['database']
+    del args["database"]
     conn = psycopg2.connect(**args)
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     with conn.cursor() as curs:
@@ -35,11 +31,11 @@ def exec_outside_of_transaction(sql: str):
 
 
 def drop_db(dbname):
-    exec_outside_of_transaction('DROP DATABASE ' + dbname)
+    exec_outside_of_transaction("DROP DATABASE " + dbname)
 
 
 def create_db(dbname):
-    exec_outside_of_transaction('CREATE DATABASE ' + dbname)
+    exec_outside_of_transaction("CREATE DATABASE " + dbname)
 
 
 @pytest.fixture()
@@ -52,7 +48,7 @@ def db():
     """
 
     retries_left = 5
-    db = CONNECT_ARGS['database']
+    db = CONNECT_ARGS["database"]
     created = False
 
     while True:
@@ -91,15 +87,15 @@ def slack_outbox():
     slack_outbox = []
     log_slack_msg = lambda x, **kwargs: slack_outbox.append(x)
 
-    with patch('lib.slack.sendmsg', side_effect=log_slack_msg):
+    with patch("lib.slack.sendmsg", side_effect=log_slack_msg):
         yield slack_outbox
 
 
 @pytest.fixture()
 def test_db_env(db):
     env = os.environ.copy()
-    env['DATABASE_URL'] = DATABASE_URL
-    env['USE_TEST_DATA'] = '1'
-    env['DATASET'] = ''
-    env['SLACK_WEBHOOK_URL'] = ''
+    env["DATABASE_URL"] = DATABASE_URL
+    env["USE_TEST_DATA"] = "1"
+    env["DATASET"] = ""
+    env["SLACK_WEBHOOK_URL"] = ""
     yield env

@@ -10,31 +10,31 @@ class LastmodInfo(NamedTuple):
     last_modified: Optional[str] = None
 
     @staticmethod
-    def read_from_dbhash(url: str, dbhash: AbstractDbHash) -> 'LastmodInfo':
+    def read_from_dbhash(url: str, dbhash: AbstractDbHash) -> "LastmodInfo":
         return LastmodInfo(
             url=url,
-            etag=dbhash.get(f'etag:{url}'),
-            last_modified=dbhash.get(f'last_modified:{url}')
+            etag=dbhash.get(f"etag:{url}"),
+            last_modified=dbhash.get(f"last_modified:{url}"),
         )
 
     def write_to_dbhash(self, dbhash: AbstractDbHash) -> None:
-        dbhash.set_or_delete(f'last_modified:{self.url}', self.last_modified)
-        dbhash.set_or_delete(f'etag:{self.url}', self.etag)
+        dbhash.set_or_delete(f"last_modified:{self.url}", self.last_modified)
+        dbhash.set_or_delete(f"etag:{self.url}", self.etag)
 
     @staticmethod
-    def from_response_headers(url: str, headers: Mapping[str, str]) -> 'LastmodInfo':
+    def from_response_headers(url: str, headers: Mapping[str, str]) -> "LastmodInfo":
         return LastmodInfo(
             url=url,
-            etag=headers.get('ETag'),
-            last_modified=headers.get('Last-Modified')
+            etag=headers.get("ETag"),
+            last_modified=headers.get("Last-Modified"),
         )
 
     def to_request_headers(self) -> Dict[str, str]:
         headers: Dict[str, str] = {}
         if self.etag:
-            headers['If-None-Match'] = self.etag
+            headers["If-None-Match"] = self.etag
         if self.last_modified:
-            headers['If-Modified-Since'] = self.last_modified
+            headers["If-Modified-Since"] = self.last_modified
         return headers
 
 
@@ -54,7 +54,8 @@ class UrlModTracker:
             res = requests.get(url, headers=lminfo.to_request_headers(), stream=True)
             if res.status_code == 200:
                 self.updated_lastmods.append(
-                    LastmodInfo.from_response_headers(url, res.headers))
+                    LastmodInfo.from_response_headers(url, res.headers)
+                )
             elif res.status_code != 304:
                 res.raise_for_status()
             res.close()

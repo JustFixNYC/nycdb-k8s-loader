@@ -1,20 +1,18 @@
 from pathlib import Path
 
 
-from lib.parse_created_tables import (
-    parse_created_tables,
-    parse_nycdb_created_tables
-)
+from lib.parse_created_tables import parse_created_tables, parse_nycdb_created_tables
 
 MY_DIR = Path(__file__).parent.resolve()
 
-SQL_DIR = MY_DIR / 'sql'
+SQL_DIR = MY_DIR / "sql"
 
 
 def test_it_returns_empty_list_when_no_tables_are_created():
-    assert parse_created_tables(
-        "ALTER TABLE hpd_registrations ADD COLUMN bbl char(10);"
-    ) == []
+    assert (
+        parse_created_tables("ALTER TABLE hpd_registrations ADD COLUMN bbl char(10);")
+        == []
+    )
 
 
 def test_it_parses_create_table_statements():
@@ -30,9 +28,9 @@ def test_it_parses_create_table_statements():
     create index on blarg (floof);
     """
 
-    assert parse_created_tables(sql) == ['blarg']
-    assert parse_created_tables(sql.lower()) == ['blarg']
-    assert parse_created_tables(sql.upper()) == ['BLARG']
+    assert parse_created_tables(sql) == ["blarg"]
+    assert parse_created_tables(sql.lower()) == ["blarg"]
+    assert parse_created_tables(sql.upper()) == ["BLARG"]
 
 
 def test_it_parses_create_table_statements_2():
@@ -44,28 +42,28 @@ def test_it_parses_create_table_statements_2():
        WHERE boop IS NOT NULL;
     """
 
-    assert parse_created_tables(sql) == ['foo']
-
+    assert parse_created_tables(sql) == ["foo"]
 
 
 def test_it_parses_original_create_table_statements_in_wow():
     sql = (SQL_DIR / "wow_original_create_bldgs_table.sql").read_text()
 
-    assert parse_created_tables(sql) == ['wow_bldgs']
+    assert parse_created_tables(sql) == ["wow_bldgs"]
 
 
 def test_it_parses_2020_create_table_statements_in_wow():
     sql = (SQL_DIR / "wow_2020_create_bldgs_table.sql").read_text()
 
-    assert parse_created_tables(sql) == ['wow_bldgs']
+    assert parse_created_tables(sql) == ["wow_bldgs"]
 
 
 def test_it_parses_2021_create_table_statements_in_wow():
     sql = (SQL_DIR / "wow_2021_create_bldgs_table.sql").read_text()
 
-    assert parse_created_tables(sql) == ['wow_bldgs']
+    assert parse_created_tables(sql) == ["wow_bldgs"]
 
 
 def test_it_parses_nycdb_files():
-    assert 'hpd_registrations_grouped_by_bbl' in parse_nycdb_created_tables([
-        'hpd_registrations/registrations_grouped_by_bbl.sql'])
+    assert "hpd_registrations_grouped_by_bbl" in parse_nycdb_created_tables(
+        ["hpd_registrations/registrations_grouped_by_bbl.sql"]
+    )

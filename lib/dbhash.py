@@ -33,7 +33,7 @@ class AbstractDbHash(abc.ABC):
 
 
 class DictDbHash(AbstractDbHash):
-    def __init__(self, d: Optional[Dict[str, str]]=None):
+    def __init__(self, d: Optional[Dict[str, str]] = None):
         if d is None:
             d = {}
         self.d = d
@@ -50,11 +50,11 @@ class DictDbHash(AbstractDbHash):
 
 class SqlDbHash(AbstractDbHash):
     PARAM_SUBST_STRINGS: Dict[str, str] = {
-        'sqlite3': r'?',
-        'psycopg2.extensions': r'%s'
+        "sqlite3": r"?",
+        "psycopg2.extensions": r"%s",
     }
 
-    def __init__(self, conn: Connection, table: str, autocommit: bool=True):
+    def __init__(self, conn: Connection, table: str, autocommit: bool = True):
         self.table = table
         self.param_subst = self.__class__.PARAM_SUBST_STRINGS[conn.__class__.__module__]
         self.autocommit = autocommit
@@ -71,32 +71,32 @@ class SqlDbHash(AbstractDbHash):
             """
         )
 
-    def _exec_sql(self, sql: str, params: Iterable[Any]=tuple()) -> Cursor:
-        sql = sql.replace('?', self.param_subst)
+    def _exec_sql(self, sql: str, params: Iterable[Any] = tuple()) -> Cursor:
+        sql = sql.replace("?", self.param_subst)
         cur = self.conn.cursor()
         cur.execute(sql, params)
         return cur
 
     def __setitem__(self, key: str, value: str) -> None:
         if self.get(key) is not None:
-            self._exec_sql(f"UPDATE {self.table} SET value = ? WHERE key = ?",
-                           (value, key))
+            self._exec_sql(
+                f"UPDATE {self.table} SET value = ? WHERE key = ?", (value, key)
+            )
         else:
             self._exec_sql(
-                f"INSERT INTO {self.table} (key, value) VALUES (?, ?)", (key, value))
+                f"INSERT INTO {self.table} (key, value) VALUES (?, ?)", (key, value)
+            )
         if self.autocommit:
             self.conn.commit()
 
     def __delitem__(self, key: str) -> None:
         if key not in self:
             raise KeyError(key)
-        self._exec_sql(
-            f"DELETE FROM {self.table} WHERE key = ?", (key,))
+        self._exec_sql(f"DELETE FROM {self.table} WHERE key = ?", (key,))
         if self.autocommit:
             self.conn.commit()
 
     def get(self, key: str) -> Optional[str]:
-        cur = self._exec_sql(
-            f"SELECT value FROM {self.table} WHERE key = ?", (key,))
+        cur = self._exec_sql(f"SELECT value FROM {self.table} WHERE key = ?", (key,))
         result = cur.fetchone()
         return None if result is None else result[0]

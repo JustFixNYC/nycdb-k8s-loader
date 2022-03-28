@@ -6,3 +6,4 @@ boto3
 python-dotenv
 requests-mock
 pyflakes==2.1.0
+black==20.8b1

@@ -8,18 +8,20 @@ def exec_grant_sql(conn, sql: str):
 
 def ensure_table_exists(conn, table_name: str, schema: str):
     with conn.cursor() as cursor:
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
         SELECT EXISTS (
             SELECT 1
             FROM   information_schema.tables 
             WHERE  table_schema = '{schema}'
             AND    table_name = '{table_name}'
-        );""")
+        );"""
+        )
         if cursor.fetchone()[0] is not True:
-            raise ValueError(f'Table {schema}.{table_name} does not exist!')
+            raise ValueError(f"Table {schema}.{table_name} does not exist!")
 
 
-def get_grant_sql(conn, table_name: str, schema: str='public') -> str:
+def get_grant_sql(conn, table_name: str, schema: str = "public") -> str:
     ensure_table_exists(conn, table_name, schema)
     # https://stackoverflow.com/a/46235386
     query = f"""
@@ -47,7 +49,7 @@ def get_grant_sql(conn, table_name: str, schema: str='public') -> str:
 
     with conn.cursor() as cur:
         cur.execute(query)
-        return ''.join([r[0] for r in cur.fetchall()])
+        return "".join([r[0] for r in cur.fetchall()])
 
 
 def get_current_database(conn) -> str:

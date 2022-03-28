@@ -5,9 +5,8 @@
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
-		"target": "dev",
+		"target": "dev"
 	},
-
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
 		// Unfortunately, this project uses pyflakes, but it doesn't yet
@@ -15,6 +14,7 @@
 		// https://github.com/microsoft/vscode-python/issues/9315
 		"terminal.integrated.shell.linux": null,
 		"python.pythonPath": "/usr/local/bin/python",
+		"python.formatting.provider": "black",
 		"python.linting.pylintEnabled": false,
 		"python.linting.flake8Enabled": false,
 		"python.linting.enabled": true,
@@ -22,14 +22,11 @@
 		"[python]": {
 			"editor.detectIndentation": false,
 			"editor.tabSize": 4
-		},
+		}
 	},
-
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"ms-python.python",
+		"ms-python.python"
 	],
-
-	"mounts": [
-	],
+	"mounts": []
 }
