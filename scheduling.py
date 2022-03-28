@@ -10,30 +10,16 @@ class Schedule(Enum):
     """
 
     # Daily at around midnight EST.
-    DAILY = "0 5 * * ?"
+    DAILY_12AM = "0 4 * * ?"
+
+    # Daily at around 7am EST.
+    DAILY_7AM = "0 11 * * ?"
 
     # Every other day around midnight EST.
-    EVERY_OTHER_DAY = "0 5 */2 * ?"
+    EVERY_OTHER_DAY = '0 4 */2 * ?'
 
     # Once per year.
     YEARLY = "@yearly"
-
-    @property
-    def aws(self) -> str:
-        """
-        The schedule in terms Amazon Web Services (AWS) expects.
-
-        Note that all times must be specified in UTC.
-
-        For more details on AWS's schedule expressions, see:
-
-        https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
-        """
-
-        if self == Schedule.YEARLY:
-            return "rate(365 days)"
-        # Note the additional "*"; AWS has a sixth field that is the year.
-        return f"cron({self.value} *)"
 
     @property
     def k8s(self) -> str:
@@ -48,28 +34,32 @@ class Schedule(Enum):
         return self.value
 
 
+CUSTOM_DATASET_NAMES: List[str] = ['wow']
+
 # The names of all valid NYC-DB datasets.
-DATASET_NAMES: List[str] = list(nycdb.dataset.datasets().keys())
+DATASET_NAMES: List[str] = [*list(nycdb.dataset.datasets().keys()), *CUSTOM_DATASET_NAMES]
+
 
 # The default schedule for a dataset loader, if
 # otherwise unspecified.
 DEFAULT_SCHEDULE = Schedule.YEARLY
 
 DATASET_SCHEDULES: Dict[str, Schedule] = {
-    "oca": Schedule.DAILY,
-    "dobjobs": Schedule.DAILY,
-    "dob_complaints": Schedule.DAILY,
-    "dob_violations": Schedule.DAILY,
-    "ecb_violations": Schedule.DAILY,
-    "hpd_violations": Schedule.DAILY,
-    "oath_hearings": Schedule.DAILY,
-    "marshal_evictions": Schedule.DAILY,
-    "hpd_vacateorders": Schedule.EVERY_OTHER_DAY,
-    "hpd_registrations": Schedule.EVERY_OTHER_DAY,
-    "hpd_complaints": Schedule.EVERY_OTHER_DAY,
-    "dof_sales": Schedule.EVERY_OTHER_DAY,
-    "pad": Schedule.EVERY_OTHER_DAY,
-    "acris": Schedule.EVERY_OTHER_DAY,
+    'oca': Schedule.DAILY_12AM,
+    'dobjobs': Schedule.DAILY_12AM,
+    'dob_complaints': Schedule.DAILY_12AM,
+    'dob_violations': Schedule.DAILY_12AM,
+    'ecb_violations': Schedule.DAILY_12AM,
+    'hpd_violations': Schedule.DAILY_12AM,
+    'oath_hearings': Schedule.DAILY_12AM,
+    'marshal_evictions': Schedule.DAILY_12AM,
+    'wow': Schedule.DAILY_7AM,
+    'hpd_vacateorders': Schedule.EVERY_OTHER_DAY,
+    'hpd_registrations': Schedule.EVERY_OTHER_DAY,
+    'hpd_complaints': Schedule.EVERY_OTHER_DAY,
+    'dof_sales': Schedule.EVERY_OTHER_DAY,
+    'pad': Schedule.EVERY_OTHER_DAY,
+    'acris': Schedule.EVERY_OTHER_DAY
 }
 
 
@@ -79,9 +69,7 @@ def get_schedule_for_dataset(dataset: str) -> Schedule:
 
 def sanity_check():
     for dataset in DATASET_SCHEDULES:
-        assert (
-            dataset in DATASET_NAMES
-        ), f"'{dataset}' must be a valid NYCDB dataset name"
+        assert dataset in DATASET_NAMES, f"'{dataset}' must be a valid NYCDB or custom dataset name"
 
 
 sanity_check()

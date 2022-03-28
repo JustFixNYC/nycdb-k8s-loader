@@ -283,7 +283,7 @@ def reset_files_if_test(dataset: Dataset, config: Config = Config()) -> Dataset:
                 root_dir=str(TEST_DATA_DIR),
             ),
         ]
-    elif dataset.name == "dof_421":
+    elif dataset.name == "dof_421a":
         dataset.files = [
             nycdb.file.File(
                 {"dest": "421a_2021_brooklyn.xlsx", "url": "https://example.com"},
