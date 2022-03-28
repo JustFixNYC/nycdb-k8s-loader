@@ -4,7 +4,7 @@ from typing import Dict, List
 import argparse
 import yaml
 
-from scheduling import CUSTOM_DATASET_NAMES, DATASET_NAMES, get_schedule_for_dataset
+from scheduling import DATASET_NAMES, get_schedule_for_dataset
 import load_dataset
 
 
