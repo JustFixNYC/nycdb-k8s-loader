@@ -10,10 +10,10 @@ class Schedule(Enum):
     """
 
     # Daily at around midnight EST.
-    DAILY = "0 5 * * ?"
+    DAILY = "0 4 * * ?"
 
     # Every other day around midnight EST.
-    EVERY_OTHER_DAY = '0 5 */2 * ?'
+    EVERY_OTHER_DAY = '0 4 */2 * ?'
 
     # Once per year.
     YEARLY = "@yearly"
