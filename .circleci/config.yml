@@ -4,8 +4,6 @@ jobs:
     machine:
       image: ubuntu-2004:202201-02
     environment:
-      CLUSTER_NAME: atul-default
-      AWS_DEFAULT_REGION: us-east-1
       PROD_IMAGE: justfixnyc/nycdb-k8s-loader:latest
       DEV_IMAGE: justfixnyc/nycdb-k8s-loader:dev
     working_directory: ~/repo
