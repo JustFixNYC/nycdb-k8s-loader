@@ -15,14 +15,18 @@
 		// https://github.com/microsoft/vscode-python/issues/9315
 		"terminal.integrated.shell.linux": null,
 		"python.pythonPath": "/usr/local/bin/python",
+		"python.formatting.provider": "black",
 		"python.linting.pylintEnabled": false,
 		"python.linting.flake8Enabled": false,
 		"python.linting.enabled": true,
 		"python.linting.mypyEnabled": true,
 		"[python]": {
+			"editor.formatOnSave": true,
 			"editor.detectIndentation": false,
-			"editor.tabSize": 4
+			"editor.tabSize": 4,
 		},
+		
+
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
