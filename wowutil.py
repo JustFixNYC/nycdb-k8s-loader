@@ -107,6 +107,10 @@ def build(db_url: str):
 def update_landlord_search_index(db_url: str):
     slack.sendmsg("Rebuilding Algolia landlord index...")
 
+    with conn.cursor() as cur:
+        cur.execute(f"SET search_path TO {WOW_SCHEMA}, public")
+    conn.commit()
+
     with psycopg2.connect(db_url) as conn:
         import portfoliograph.landlord_index
         portfoliograph.landlord_index.update_landlord_search_index(conn, os.environ["ALGOLIA_APP_ID"], os.environ["ALGOLIA_API_KEY"])

@@ -28,7 +28,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install -e .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=00c2e07462ac59dbf9450a612c5ca9d9534f9783
+ARG WOW_REV=aa85711029f1120a57766709f60bfc0a6dd63ffb
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
@@ -42,7 +42,7 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
 # dependencies, at least until we formally turn it into a
 # real Python package.
 RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.6/site-packages/portfoliograph && \
-  pip install networkx==2.5.1
+  pip install networkx==2.5.1 && pip install numpy==1.19.5 && pip install algoliasearch==2.6.1
 
 ENV PYTHONUNBUFFERED yup
 
