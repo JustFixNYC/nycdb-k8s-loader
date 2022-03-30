@@ -34,7 +34,7 @@ class Schedule(Enum):
         return self.value
 
 
-CUSTOM_DATASET_NAMES: List[str] = ["wow"]
+CUSTOM_DATASET_NAMES: List[str] = ["wow", "landlord_search_index"]
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = [

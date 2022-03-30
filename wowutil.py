@@ -104,6 +104,27 @@ def build(db_url: str):
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
 
+def update_landlord_search_index(db_url: str):
+
+    app_id = os.environ.get("ALGOLIA_APP_ID", None)
+    api_key = os.environ.get("ALGOLIA_API_KEY", None)
+
+    if not app_id or not api_key:
+        slack.sendmsg("Connection to Algolia not configured. Skipping...")
+    else:
+        slack.sendmsg("Rebuilding Algolia landlord index...")
+
+        with psycopg2.connect(db_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SET search_path TO {WOW_SCHEMA}, public")
+                conn.commit()
+
+            import portfoliograph.landlord_index
+            portfoliograph.landlord_index.update_landlord_search_index(conn, app_id, api_key)
+        
+        slack.sendmsg("Finished rebuilding Algolia landlord search index.")
+
+
 def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 

@@ -311,6 +311,12 @@ def load_dataset(
         wowutil.build(config.database_url)
         return
 
+    if dataset == "landlord_search_index":
+        import wowutil
+
+        wowutil.update_landlord_search_index(config.database_url)
+        return
+
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=config.nycdb_args)
     ds = reset_files_if_test(ds, config)
