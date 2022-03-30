@@ -109,8 +109,9 @@ def update_landlord_search_index(db_url: str):
     app_id = os.environ.get("ALGOLIA_APP_ID", None)
     api_key = os.environ.get("ALGOLIA_API_KEY", None)
 
-    if app_id is not None and api_key is not None:
-        
+    if not app_id or not api_key:
+        slack.sendmsg("Connection to Algolia not configured. Skipping...")
+    else:
         slack.sendmsg("Rebuilding Algolia landlord index...")
 
         with psycopg2.connect(db_url) as conn:
@@ -122,8 +123,6 @@ def update_landlord_search_index(db_url: str):
             portfoliograph.landlord_index.update_landlord_search_index(conn, app_id, api_key)
         
         slack.sendmsg("Finished rebuilding Algolia landlord search index.")
-    else:
-        slack.sendmsg("Connection to Algolia not configured. Skipping...")
 
 
 def main(argv: List[str], db_url: str):
