@@ -15,11 +15,14 @@ import sys
 import os
 from pathlib import Path
 from typing import List
+from urllib.parse import non_hierarchical
 import docopt
 import psycopg2
 import yaml
 
+from datetime import datetime
 from lib import slack
+from lib.db_perms import test_table_exists
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
 from load_dataset import (
@@ -75,6 +78,11 @@ def has_new_hpd_registration_data(conn):
     modtracker = UrlModTracker(get_urls_for_dataset("hpd_registrations"), dbhash)
     hpd_regs_last_updated = modtracker.dbhash.get(f"last_modified:{modtracker.urls[0]}")
 
+    hpd_regs_last_updated_date = hpd_regs_last_updated
+    # datetime.strptime(hpd_regs_last_updated, '%a, %d %b %Y %H:%M:%S %Z')
+
+    if not test_table_exists(conn, "wow_portfolios", "wow"):
+        return True
     with conn.cursor() as cur:
         cur.execute(
             f"""
@@ -84,15 +92,12 @@ def has_new_hpd_registration_data(conn):
             LIMIT  1;
             """
         )
-        wow_portfolios_last_updated = cur.fetchone()[0]
-        if (
-            wow_portfolios_last_updated is None
-            or wow_portfolios_last_updated < hpd_regs_last_updated
-            # 2022-03-30 18:48:27.850263+00 < Tue, 01 Mar 2022 20:33:07 GMT
-        ):
+        wow_portfolios_last_updated = None if cur.fetchone() is None else cur.fetchone()[0]
+        if wow_portfolios_last_updated is None:
             return True
         else:
-            return False
+            wow_portfolios_last_updated_date = datetime.strptime(wow_portfolios_last_updated +'00', '%Y-%m-%d %H:%M:%S.%f%z')
+            return wow_portfolios_last_updated_date < hpd_regs_last_updated_date
 
 
 def update_landlord_search_index(conn):
@@ -135,7 +140,6 @@ def build(db_url: str):
             run_wow_sql(conn)
             if has_new_hpd_registration_data(conn):
                 populate_portfolios_table(conn)
-                update_landlord_search_index(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -153,6 +157,8 @@ def build(db_url: str):
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
+        if has_new_hpd_registration_data(conn):
+            update_landlord_search_index(conn)
 
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 

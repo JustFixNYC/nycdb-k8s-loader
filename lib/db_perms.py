@@ -6,7 +6,7 @@ def exec_grant_sql(conn, sql: str):
     conn.commit()
 
 
-def ensure_table_exists(conn, table_name: str, schema: str):
+def test_table_exists(conn, table_name: str, schema: str):
     with conn.cursor() as cursor:
         cursor.execute(
             f"""
@@ -17,8 +17,13 @@ def ensure_table_exists(conn, table_name: str, schema: str):
             AND    table_name = '{table_name}'
         );"""
         )
-        if cursor.fetchone()[0] is not True:
-            raise ValueError(f"Table {schema}.{table_name} does not exist!")
+        return cursor.fetchone()[0]
+
+
+def ensure_table_exists(conn, table_name: str, schema: str):
+    table_exists = test_table_exists(conn, table_name, schema)
+    if table_exists is not True:
+        raise ValueError(f"Table {schema}.{table_name} does not exist!")
 
 
 def get_grant_sql(conn, table_name: str, schema: str = "public") -> str:

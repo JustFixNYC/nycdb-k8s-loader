@@ -1,8 +1,11 @@
+from unittest import mock
 import psycopg2
 
 from .conftest import DATABASE_URL
 from load_dataset import Config, load_dataset
 import wowutil
+
+from unittest.mock import patch
 
 
 def load_dependee_datasets(config: Config):
@@ -22,19 +25,26 @@ def ensure_wow_works():
 
 
 def test_it_works(db, slack_outbox):
-    config = Config(database_url=DATABASE_URL, use_test_data=True)
-    load_dependee_datasets(config)
-    wowutil.main(["build"], db_url=DATABASE_URL)
 
-    ensure_wow_works()
-    assert slack_outbox[-2] == "Rebuilding Who Owns What tables..."
-    assert slack_outbox[-1] == "Finished rebuilding Who Owns What tables."
+    # Let's intentionally disable our access to Algolio 
+    # so we don't update the landlord search index
+    with mock.patch.dict('os.environ', {"ALGOLIA_API_KEY": ""}, clear=True):
+        config = Config(database_url=DATABASE_URL, use_test_data=True)
+        load_dependee_datasets(config)
 
-    # Ensure that reloading the dependee datasets doesn't raise
-    # an exception.
-    load_dependee_datasets(config)
+        wowutil.main(["build"], db_url=DATABASE_URL)
 
-    # Ensure runing build again doesn't raise an exception.
-    wowutil.main(["build"], db_url=DATABASE_URL)
+        ensure_wow_works()
 
-    ensure_wow_works()
+        assert slack_outbox[-3] == "Rebuilding Who Owns What tables..."
+        assert slack_outbox[-2] == "Connection to Algolia not configured. Skipping..."
+        assert slack_outbox[-1] == "Finished rebuilding Who Owns What tables."
+
+        # Ensure that reloading the dependee datasets doesn't raise
+        # an exception.
+        load_dependee_datasets(config)
+
+        # Ensure running build again doesn't raise an exception.
+        wowutil.main(["build"], db_url=DATABASE_URL)
+
+        ensure_wow_works()
