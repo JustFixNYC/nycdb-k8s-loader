@@ -104,25 +104,18 @@ def update_landlord_search_index(conn):
         slack.sendmsg("Connection to Algolia not configured. Skipping...")
     else:
         with conn.cursor() as cur:
+            slack.sendmsg("Rebuilding Algolia landlord index...")
+
             cur.execute(f"SET search_path TO {WOW_SCHEMA}, public")
             conn.commit()
 
-            if has_new_hpd_registration_data(conn):
+            import portfoliograph.landlord_index
 
-                slack.sendmsg("Rebuilding Algolia landlord index...")
+            portfoliograph.landlord_index.update_landlord_search_index(
+                conn, app_id, api_key
+            )
 
-                import portfoliograph.landlord_index
-
-                portfoliograph.landlord_index.update_landlord_search_index(
-                    conn, app_id, api_key
-                )
-
-                slack.sendmsg("Finished rebuilding Algolia landlord search index.")
-            else:
-                slack.sendmsg(
-                    "The wow_portfolios table has not changed since we last created "
-                    "Algolia landlord index. Skipping..."
-                )
+            slack.sendmsg("Finished rebuilding Algolia landlord search index.")
 
 
 def build(db_url: str):
