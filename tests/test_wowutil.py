@@ -5,8 +5,6 @@ from .conftest import DATABASE_URL
 from load_dataset import Config, load_dataset
 import wowutil
 
-from unittest.mock import patch
-
 
 def load_dependee_datasets(config: Config):
     for dataset_name in wowutil.WOW_YML["dependencies"]:
