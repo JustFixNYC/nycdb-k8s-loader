@@ -36,8 +36,8 @@ def test_it_works(db, slack_outbox):
 
         ensure_wow_works()
 
-        assert slack_outbox[-3] == "Rebuilding Who Owns What tables..."
-        assert slack_outbox[-2] == "Connection to Algolia not configured. Skipping..."
+        assert "Rebuilding Who Owns What tables..." in slack_outbox
+        assert "Rebuilding Algolia landlord index..." not in slack_outbox
         assert slack_outbox[-1] == "Finished rebuilding Who Owns What tables."
 
         # Ensure that reloading the dependee datasets doesn't raise

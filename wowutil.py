@@ -73,13 +73,17 @@ def populate_portfolios_table(conn):
     conn.commit()
 
 
-def has_new_hpd_registration_data(conn):
+def should_we_update_portfolio_data(conn):
     dbhash = get_dbhash(conn)
     modtracker = UrlModTracker(get_urls_for_dataset("hpd_registrations"), dbhash)
     hpd_regs_last_updated = modtracker.dbhash.get(f"last_modified:{modtracker.urls[0]}")
 
-    hpd_regs_last_updated_date = hpd_regs_last_updated
-    # datetime.strptime(hpd_regs_last_updated, '%a, %d %b %Y %H:%M:%S %Z')
+    if not hpd_regs_last_updated:
+        return False
+
+    hpd_regs_last_updated_date = datetime.strptime(
+        hpd_regs_last_updated, "%a, %d %b %Y %H:%M:%S %Z"
+    )
 
     if not test_table_exists(conn, "wow_portfolios", "wow"):
         return True
@@ -142,7 +146,7 @@ def build(db_url: str):
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
-            if has_new_hpd_registration_data(conn):
+            if should_we_update_portfolio_data(conn):
                 populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
@@ -161,7 +165,7 @@ def build(db_url: str):
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
-        if has_new_hpd_registration_data(conn):
+        if should_we_update_portfolio_data(conn):
             update_landlord_search_index(conn)
 
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
