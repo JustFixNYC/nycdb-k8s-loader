@@ -148,6 +148,7 @@ def build(db_url: str):
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
             if should_we_update_portfolio_data(conn):
+                slack.sendmsg("Rebuilding wow_portfolios table...")
                 populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
