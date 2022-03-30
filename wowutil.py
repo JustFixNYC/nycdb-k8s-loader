@@ -89,22 +89,24 @@ def should_we_update_portfolio_data(conn):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-            SELECT pg_xact_commit_timestamp(t.xmin) AS modified_ts
+            SELECT pg_xact_commit_timestamp(t.xmin)::timestamp without time zone 
+            AS modified_ts
             FROM   wow.wow_portfolios t
             ORDER  BY modified_ts DESC NULLS LAST
             LIMIT  1;
             """
         )
-        wow_portfolios_last_updated = (
-            None if cur.fetchone() is None else cur.fetchone()[0]
-        )
-        if wow_portfolios_last_updated is None:
+        result = cur.fetchone()
+
+        if not result:
             return True
-        else:
-            wow_portfolios_last_updated_date = datetime.strptime(
-                wow_portfolios_last_updated + "00", "%Y-%m-%d %H:%M:%S.%f%z"
-            )
-            return wow_portfolios_last_updated_date < hpd_regs_last_updated_date
+
+        wow_portfolios_last_updated = result[0]
+
+        if not wow_portfolios_last_updated:
+            return True
+
+        return wow_portfolios_last_updated < hpd_regs_last_updated_date
 
 
 def update_landlord_search_index(conn):
