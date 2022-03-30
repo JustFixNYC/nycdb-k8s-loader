@@ -92,11 +92,15 @@ def has_new_hpd_registration_data(conn):
             LIMIT  1;
             """
         )
-        wow_portfolios_last_updated = None if cur.fetchone() is None else cur.fetchone()[0]
+        wow_portfolios_last_updated = (
+            None if cur.fetchone() is None else cur.fetchone()[0]
+        )
         if wow_portfolios_last_updated is None:
             return True
         else:
-            wow_portfolios_last_updated_date = datetime.strptime(wow_portfolios_last_updated +'00', '%Y-%m-%d %H:%M:%S.%f%z')
+            wow_portfolios_last_updated_date = datetime.strptime(
+                wow_portfolios_last_updated + "00", "%Y-%m-%d %H:%M:%S.%f%z"
+            )
             return wow_portfolios_last_updated_date < hpd_regs_last_updated_date
 
 

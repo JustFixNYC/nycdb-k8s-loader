@@ -26,9 +26,9 @@ def ensure_wow_works():
 
 def test_it_works(db, slack_outbox):
 
-    # Let's intentionally disable our access to Algolio 
+    # Let's intentionally disable our access to Algolio
     # so we don't update the landlord search index
-    with mock.patch.dict('os.environ', {"ALGOLIA_API_KEY": ""}, clear=True):
+    with mock.patch.dict("os.environ", {"ALGOLIA_API_KEY": ""}, clear=True):
         config = Config(database_url=DATABASE_URL, use_test_data=True)
         load_dependee_datasets(config)
 
