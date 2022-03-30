@@ -15,7 +15,6 @@ import sys
 import os
 from pathlib import Path
 from typing import List
-from urllib.parse import non_hierarchical
 import docopt
 import psycopg2
 import yaml
