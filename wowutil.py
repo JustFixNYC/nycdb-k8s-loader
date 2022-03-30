@@ -19,11 +19,16 @@ import docopt
 import psycopg2
 import yaml
 
+from datetime import datetime
 from lib import slack
+from lib.db_perms import test_table_exists
+from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
+    get_dbhash,
+    get_urls_for_dataset,
     save_and_reapply_permissions,
     ensure_schema_exists,
     drop_tables_if_they_exist,
@@ -67,6 +72,66 @@ def populate_portfolios_table(conn):
     conn.commit()
 
 
+def should_we_update_portfolio_data(conn):
+    dbhash = get_dbhash(conn)
+    modtracker = UrlModTracker(get_urls_for_dataset("hpd_registrations"), dbhash)
+    hpd_regs_last_updated = modtracker.dbhash.get(f"last_modified:{modtracker.urls[0]}")
+
+    if not hpd_regs_last_updated:
+        return False
+
+    hpd_regs_last_updated_date = datetime.strptime(
+        hpd_regs_last_updated, "%a, %d %b %Y %H:%M:%S %Z"
+    )
+
+    if not test_table_exists(conn, "wow_portfolios", "wow"):
+        return True
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT pg_xact_commit_timestamp(t.xmin)::timestamp without time zone 
+            AS modified_ts
+            FROM   wow.wow_portfolios t
+            ORDER  BY modified_ts DESC NULLS LAST
+            LIMIT  1;
+            """
+        )
+        result = cur.fetchone()
+
+        if not result:
+            return True
+
+        wow_portfolios_last_updated = result[0]
+
+        if not wow_portfolios_last_updated:
+            return True
+
+        return wow_portfolios_last_updated < hpd_regs_last_updated_date
+
+
+def update_landlord_search_index(conn):
+
+    app_id = os.environ.get("ALGOLIA_APP_ID", None)
+    api_key = os.environ.get("ALGOLIA_API_KEY", None)
+
+    if not app_id or not api_key:
+        slack.sendmsg("Connection to Algolia not configured. Skipping...")
+    else:
+        with conn.cursor() as cur:
+            slack.sendmsg("Rebuilding Algolia landlord index...")
+
+            cur.execute(f"SET search_path TO {WOW_SCHEMA}, public")
+            conn.commit()
+
+            import portfoliograph.landlord_index
+
+            portfoliograph.landlord_index.update_landlord_search_index(
+                conn, app_id, api_key
+            )
+
+            slack.sendmsg("Finished rebuilding Algolia landlord search index.")
+
+
 def build(db_url: str):
     slack.sendmsg("Rebuilding Who Owns What tables...")
 
@@ -82,7 +147,9 @@ def build(db_url: str):
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
-            populate_portfolios_table(conn)
+            if should_we_update_portfolio_data(conn):
+                slack.sendmsg("Rebuilding wow_portfolios table...")
+                populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -100,29 +167,10 @@ def build(db_url: str):
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
+        if should_we_update_portfolio_data(conn):
+            update_landlord_search_index(conn)
 
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
-
-
-def update_landlord_search_index(db_url: str):
-
-    app_id = os.environ.get("ALGOLIA_APP_ID", None)
-    api_key = os.environ.get("ALGOLIA_API_KEY", None)
-
-    if not app_id or not api_key:
-        slack.sendmsg("Connection to Algolia not configured. Skipping...")
-    else:
-        slack.sendmsg("Rebuilding Algolia landlord index...")
-
-        with psycopg2.connect(db_url) as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"SET search_path TO {WOW_SCHEMA}, public")
-                conn.commit()
-
-            import portfoliograph.landlord_index
-            portfoliograph.landlord_index.update_landlord_search_index(conn, app_id, api_key)
-        
-        slack.sendmsg("Finished rebuilding Algolia landlord search index.")
 
 
 def main(argv: List[str], db_url: str):
