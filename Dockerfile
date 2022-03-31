@@ -42,7 +42,7 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
 # dependencies, at least until we formally turn it into a
 # real Python package.
 RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.6/site-packages/portfoliograph && \
-  pip install networkx==2.5.1 && pip install numpy==1.19.5 && pip install algoliasearch==2.6.1
+  pip install networkx==2.5.1 && pip install numpy==1.19.5
 
 ENV PYTHONUNBUFFERED yup
 
