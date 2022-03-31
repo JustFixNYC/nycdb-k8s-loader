@@ -21,7 +21,6 @@ import yaml
 
 from datetime import datetime
 from lib import slack
-from lib.db_perms import test_table_exists
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
 from algoliasearch.search_client import SearchClient
@@ -111,7 +110,7 @@ def update_landlord_search_index(conn):
     )
     print("Our Algolia landlord search index was last updated on: ", index_last_updated)
     hpd_regs_last_updated = get_hpd_last_updated_date(conn)
-    print("HPD Registrations tables were last updated on: ", index_last_updated)
+    print("HPD Registrations tables were last updated on: ", hpd_regs_last_updated)
 
     if hpd_regs_last_updated < index_last_updated:
         slack.sendmsg(
