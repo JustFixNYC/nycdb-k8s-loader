@@ -150,6 +150,7 @@ def build(db_url: str):
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
             populate_portfolios_table(conn)
+            update_landlord_search_index(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -167,8 +168,6 @@ def build(db_url: str):
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
-        if should_we_update_portfolio_data(conn):
-            update_landlord_search_index(conn)
 
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
