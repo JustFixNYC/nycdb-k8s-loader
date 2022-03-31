@@ -14,7 +14,7 @@ Environment variables:
 import sys
 import os
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 import docopt
 import psycopg2
 import yaml
@@ -97,13 +97,12 @@ def update_landlord_search_index(conn):
     client = SearchClient.create(app_id, api_key)
 
     indices_info_resp = client.list_indices()
-    index_info = next(
+    index_info: Dict = next(
         (
             item
             for item in indices_info_resp["items"]
             if item["name"] == "wow_landlords"
-        ),
-        None,
+        )
     )
     index_last_updated = datetime.strptime(
         index_info["updatedAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
