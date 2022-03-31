@@ -98,11 +98,7 @@ def update_landlord_search_index(conn):
 
     indices_info_resp = client.list_indices()
     index_info: Dict = next(
-        (
-            item
-            for item in indices_info_resp["items"]
-            if item["name"] == "wow_landlords"
-        )
+        (item for item in indices_info_resp["items"] if item["name"] == "wow_landlords")
     )
     index_last_updated = datetime.strptime(
         index_info["updatedAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -148,7 +144,6 @@ def build(db_url: str):
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
             populate_portfolios_table(conn)
-            update_landlord_search_index(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -166,6 +161,8 @@ def build(db_url: str):
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
+
+        update_landlord_search_index(conn)
 
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
