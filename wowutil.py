@@ -11,19 +11,23 @@ Environment variables:
   DATABASE_URL           The URL of the NYC-DB and WoW database.
 """
 
-import sys
 import os
+import sys
+from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Iterator, List
+
 import docopt
 import psycopg2
 import yaml
+from algoliasearch.search_client import SearchClient
+from sshtunnel import SSHTunnelForwarder
 
-from datetime import datetime
 from lib import slack
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
-from algoliasearch.search_client import SearchClient
+from ocautil import create_and_populate_oca_tables
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
@@ -38,7 +42,6 @@ from load_dataset import (
     TableInfo,
 )
 
-
 WOW_SCHEMA = "wow"
 
 WOW_DIR = Path("/who-owns-what")
@@ -48,6 +51,19 @@ WOW_SQL_DIR = Path(WOW_DIR / "sql")
 WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.FullLoader)
 
 WOW_SCRIPTS: List[str] = WOW_YML["sql"]
+
+OCA_TABLES: List[str] = WOW_YML["oca_tables"]
+
+# TODO: 
+
+def create_oca_tables(wow_conn, table_names: List[str]):
+    with wow_conn.cursor() as wow_cur:
+        for table in table_names:
+            sql = (WOW_SQL_DIR / f"create_{table}.sql").read_text()
+            wow_cur.execute(sql)
+
+def populate_oca_tables():
+    pass
 
 
 def run_wow_sql(conn):
@@ -142,6 +158,8 @@ def build(db_url: str):
         install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
+            # TODO: 
+            create_and_populate_oca_tables(conn)
             run_wow_sql(conn)
             populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)

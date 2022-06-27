@@ -4,3 +4,4 @@ __pycache__/
 k8s-jobs/
 .env
 venv/
+.ssh/

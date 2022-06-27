@@ -10,6 +10,7 @@ def load_dependee_datasets(config: Config):
     for dataset_name in wowutil.WOW_YML["dependencies"]:
         load_dataset(dataset_name, config)
 
+# TODO: ensure_oca_works()
 
 def ensure_wow_works():
     with psycopg2.connect(DATABASE_URL) as conn:
