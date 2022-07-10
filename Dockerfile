@@ -28,7 +28,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install -e .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=05a3e53fc305521f500c2f50f7d66c46c57595f8
+ARG WOW_REV=9bafee2bb054807a04446c6c2a10775dc4bfb6b8
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
@@ -43,6 +43,10 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
 # real Python package.
 RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.6/site-packages/portfoliograph && \
   pip install networkx==2.5.1 && pip install numpy==1.19.5
+
+# For now we also do the same process for OCA data prep.
+RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.6/site-packages/ocaevictions && \
+  pip install sshtunnel==0.4.0
 
 ENV PYTHONUNBUFFERED yup
 
