@@ -19,7 +19,8 @@ CONNECT_ARGS = dict(
     user=DB_USER, password=DB_PASSWORD, host=DB_HOST, database=DB_NAME, port=DB_PORT
 )
 
-# 
+#
+
 
 def exec_outside_of_transaction(sql: str):
     args = CONNECT_ARGS.copy()

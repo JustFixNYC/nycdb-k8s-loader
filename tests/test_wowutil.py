@@ -11,15 +11,19 @@ MY_DIR = Path(__file__).parent.resolve()
 
 OCA_TEST_DATA_DIR = MY_DIR / "data"
 
+
 def copy_oca_test_data_to_nycdb_dir():
     for file in OCA_TEST_DATA_DIR.glob("*oca_*.csv"):
         shutil.copy(file, TEST_DATA_DIR)
+
 
 def load_dependee_datasets(config: Config):
     for dataset_name in wowutil.WOW_YML["dependencies"]:
         load_dataset(dataset_name, config)
 
+
 # TODO: ensure_oca_works()
+
 
 def ensure_wow_works():
     with psycopg2.connect(DATABASE_URL) as conn:

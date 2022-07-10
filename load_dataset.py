@@ -59,6 +59,7 @@ class Config(NamedTuple):
             hide_progress=False,
         )
 
+
 class TableInfo(NamedTuple):
     name: str
     dataset: str
