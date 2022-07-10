@@ -39,10 +39,6 @@ class CommandError(Exception):
 class Config(NamedTuple):
     database_url: str = os.environ["DATABASE_URL"]
     use_test_data: bool = bool(os.environ.get("USE_TEST_DATA", ""))
-    oca_database_url: str = os.environ["OCA_DATABASE_URL"]
-    oca_ssh_host: str = os.environ["OCA_SSH_HOST"]
-    oca_ssh_user: str = os.environ["OCA_SSH_USER"]
-    oca_ssh_pkey: str = os.environ["OCA_SSH_PKEY"]
 
     @property
     def nycdb_args(self):
@@ -62,25 +58,6 @@ class Config(NamedTuple):
             root_dir=str(TEST_DATA_DIR) if self.use_test_data else str(NYCDB_DATA_DIR),
             hide_progress=False,
         )
-
-    @property
-    def oca_args(self):
-        DB_INFO = urllib.parse.urlparse(self.oca_database_url)
-        DB_HOST = DB_INFO.hostname
-        DB_NAME = DB_INFO.path[1:]
-        DB_USER = DB_INFO.username
-        DB_PASSWORD = DB_INFO.password
-
-        return SimpleNamespace(
-            db_user=DB_USER,
-            db_password=DB_PASSWORD,
-            db_host=DB_HOST,
-            db_name=DB_NAME,
-            ssh_user=self.oca_ssh_user,
-            ssh_host=self.oca_ssh_host,
-            ssh_pkey=self.oca_ssh_pkey,
-        )
-
 
 class TableInfo(NamedTuple):
     name: str
@@ -330,7 +307,7 @@ def load_dataset(
     if dataset == "wow":
         import wowutil
 
-        wowutil.build(config.database_url)
+        wowutil.build(config.database_url, config.use_test_data)
         return
 
     tables = get_tables_for_dataset(dataset)

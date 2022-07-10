@@ -31,12 +31,14 @@ def test_it_works(db, slack_outbox):
         config = Config(database_url=DATABASE_URL, use_test_data=True)
         load_dependee_datasets(config)
 
-        wowutil.main(["build"], db_url=DATABASE_URL)
+        wowutil.main(["build --test"], db_url=DATABASE_URL)
 
         ensure_wow_works()
 
+        assert "Rebuilding OCA evictions tables..." in slack_outbox
         assert "Rebuilding Who Owns What tables..." in slack_outbox
         assert "Rebuilding Algolia landlord index..." not in slack_outbox
+        assert slack_outbox[-2] == "Finished rebuilding OCA evictions tables."
         assert slack_outbox[-1] == "Finished rebuilding Who Owns What tables."
 
         # Ensure that reloading the dependee datasets doesn't raise
@@ -44,6 +46,6 @@ def test_it_works(db, slack_outbox):
         load_dependee_datasets(config)
 
         # Ensure running build again doesn't raise an exception.
-        wowutil.main(["build"], db_url=DATABASE_URL)
+        wowutil.main(["build --test"], db_url=DATABASE_URL)
 
         ensure_wow_works()
