@@ -7,8 +7,8 @@ Usage:
 Options:
   -h --help     Show this screen.
 
-test:
-  --test=<bool>          Whether to run using test data.
+Test:
+  --test=<bool>          Use test data if the argument==True    
 
 Environment variables:
   DATABASE_URL           The URL of the NYC-DB and WoW database.
