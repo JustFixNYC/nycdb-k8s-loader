@@ -34,7 +34,7 @@ class Schedule(Enum):
         return self.value
 
 
-CUSTOM_DATASET_NAMES: List[str] = ["wow"]
+CUSTOM_DATASET_NAMES: List[str] = ["wow", "oca_address"]
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = [
@@ -56,6 +56,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "hpd_violations": Schedule.DAILY_12AM,
     "oath_hearings": Schedule.DAILY_12AM,
     "marshal_evictions": Schedule.DAILY_12AM,
+    "oca_address": Schedule.DAILY_12AM,
     "wow": Schedule.DAILY_7AM,
     "hpd_vacateorders": Schedule.EVERY_OTHER_DAY,
     "hpd_registrations": Schedule.EVERY_OTHER_DAY,
