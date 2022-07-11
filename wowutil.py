@@ -1,33 +1,26 @@
 """\
 Perform operations on the Who Owns What database tables.
-
 Usage:
-  wowutil.py build [options] [test]
-
+  wowutil.py build
 Options:
   -h --help     Show this screen.
-
-Test:
-  --test=<bool>          Use test data if the argument==True    
-
 Environment variables:
   DATABASE_URL           The URL of the NYC-DB and WoW database.
 """
 
-import os
 import sys
-from datetime import datetime
+import os
 from pathlib import Path
 from typing import Dict, List
-
 import docopt
 import psycopg2
 import yaml
-from algoliasearch.search_client import SearchClient
 
+from datetime import datetime
 from lib import slack
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
+from algoliasearch.search_client import SearchClient
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
@@ -40,9 +33,8 @@ from load_dataset import (
     run_sql_if_nonempty,
     get_all_create_function_sql,
     TableInfo,
-    NYCDB_DATA_DIR,
-    TEST_DATA_DIR,
 )
+
 
 WOW_SCHEMA = "wow"
 
@@ -53,8 +45,6 @@ WOW_SQL_DIR = Path(WOW_DIR / "sql")
 WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.FullLoader)
 
 WOW_SCRIPTS: List[str] = WOW_YML["sql"]
-
-OCA_TABLES: List[str] = WOW_YML["oca_tables"]
 
 
 def run_wow_sql(conn):
@@ -70,30 +60,6 @@ def install_db_extensions(conn):
     with conn.cursor() as cur:
         cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     conn.commit()
-
-
-def create_and_populate_oca_tables(conn, is_testing: bool = False):
-    import ocaevictions.table
-
-    config = ocaevictions.table.OcaConfig(
-        oca_table_names=OCA_TABLES,
-        sql_dir=WOW_SQL_DIR,
-        data_dir=NYCDB_DATA_DIR,
-        test_dir=TEST_DATA_DIR,
-        oca_db_url=os.environ.get("OCA_DATABASE_URL", None),
-        oca_ssh_host=os.environ.get("OCA_SSH_HOST", None),
-        oca_ssh_user=os.environ.get("OCA_SSH_USER", None),
-        oca_ssh_pkey=os.environ.get("OCA_SSH_PKEY", None),
-        is_testing=is_testing,
-    )
-
-    with conn.cursor() as wow_cur:
-        slack.sendmsg("Rebuilding OCA evictions tables...")
-        ocaevictions.table.create_oca_tables(wow_cur, config)
-        ocaevictions.table.populate_oca_tables(wow_cur, config)
-
-    conn.commit()
-    slack.sendmsg("Finished rebuilding OCA evictions tables.")
 
 
 def populate_portfolios_table(conn):
@@ -159,21 +125,20 @@ def update_landlord_search_index(conn):
         slack.sendmsg("Finished rebuilding Algolia landlord search index.")
 
 
-def build(db_url: str, is_testing: bool = False):
+def build(db_url: str):
     slack.sendmsg("Rebuilding Who Owns What tables...")
 
     cosmetic_dataset_name = "wow"
 
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
-        for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS) + OCA_TABLES
+        for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
     ]
 
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
-            create_and_populate_oca_tables(conn, is_testing)
             run_wow_sql(conn)
             populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
@@ -203,8 +168,7 @@ def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 
     if args["build"]:
-        is_testing = bool(args["--test"])
-        build(db_url, is_testing)
+        build(db_url)
 
 
 if __name__ == "__main__":
