@@ -54,6 +54,7 @@ def db():
     while True:
         try:
             psycopg2.connect(**CONNECT_ARGS).close()
+            created = True
             break
         except psycopg2.OperationalError as e:
             if 'database "{}" does not exist'.format(db) in str(e):
