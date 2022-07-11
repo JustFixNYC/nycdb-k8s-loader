@@ -1,15 +1,30 @@
 from unittest import mock
-from pathlib import Path
 import psycopg2
 
 from .conftest import DATABASE_URL
-from load_dataset import Config, load_dataset, TEST_DATA_DIR
+from load_dataset import Config, load_dataset, NYCDB_DATA_DIR, TEST_DATA_DIR
 import wowutil
 
 
 def load_dependee_datasets(config: Config):
     for dataset_name in wowutil.WOW_YML["dependencies"]:
         load_dataset(dataset_name, config)
+
+
+def create_empty_oca_tables():
+    import ocaevictions.table
+
+    oca_config = ocaevictions.table.OcaConfig(
+        oca_table_names=wowutil.WOW_YML["oca_tables"],
+        sql_dir=wowutil.WOW_SQL_DIR,
+        data_dir=NYCDB_DATA_DIR,
+        test_dir=TEST_DATA_DIR,
+        is_testing=True,
+    )
+
+    with psycopg2.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            ocaevictions.table.create_oca_tables(cur, oca_config)
 
 
 def ensure_wow_works():
@@ -30,6 +45,7 @@ def test_it_works(db, slack_outbox):
     with mock.patch.dict("os.environ", {"ALGOLIA_API_KEY": ""}, clear=True):
         config = Config(database_url=DATABASE_URL, use_test_data=True)
         load_dependee_datasets(config)
+        create_empty_oca_tables()
 
         wowutil.main(["build"], db_url=DATABASE_URL)
 
