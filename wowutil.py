@@ -1,9 +1,12 @@
 """\
 Perform operations on the Who Owns What database tables.
+
 Usage:
   wowutil.py build
+
 Options:
   -h --help     Show this screen.
+
 Environment variables:
   DATABASE_URL           The URL of the NYC-DB and WoW database.
 """

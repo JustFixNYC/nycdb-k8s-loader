@@ -3,7 +3,7 @@ import psycopg2
 import shutil
 
 from .conftest import DATABASE_URL
-from load_dataset import Config, TEST_DATA_DIR
+from load_dataset import TEST_DATA_DIR
 import ocautil
 
 MY_DIR = Path(__file__).parent.resolve()
