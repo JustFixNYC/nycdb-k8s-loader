@@ -310,6 +310,11 @@ def load_dataset(
 
         wowutil.build(config.database_url)
         return
+    elif dataset == "oca_address":
+        import ocautil
+
+        ocautil.build(config.database_url, config.use_test_data)
+        return
 
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=config.nycdb_args)
