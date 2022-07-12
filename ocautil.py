@@ -16,12 +16,10 @@ Environment variables:
 
 import os
 import sys
-from pathlib import Path
 from typing import List
 
 import docopt
 import psycopg2
-import yaml
 
 from lib import slack
 from load_dataset import (
@@ -35,15 +33,9 @@ from load_dataset import (
     NYCDB_DATA_DIR,
     TEST_DATA_DIR,
 )
-from wowutil import install_db_extensions
+from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 
-WOW_SCHEMA = "wow"
-
-WOW_DIR = Path("/who-owns-what")
-
-WOW_SQL_DIR = Path(WOW_DIR / "sql")
-
-WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.FullLoader)
+OCA_SCHEMA = "oca"
 
 OCA_TABLES: List[str] = WOW_YML["oca_tables"]
 
@@ -84,10 +76,10 @@ def build(db_url: str, is_testing: bool = False):
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             create_and_populate_oca_tables(conn, is_testing)
-            ensure_schema_exists(conn, WOW_SCHEMA)
-            with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
-                drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
-                change_table_schemas(conn, tables, temp_schema, WOW_SCHEMA)
+            ensure_schema_exists(conn, OCA_SCHEMA)
+            with save_and_reapply_permissions(conn, tables, OCA_SCHEMA):
+                drop_tables_if_they_exist(conn, tables, OCA_SCHEMA)
+                change_table_schemas(conn, tables, temp_schema, OCA_SCHEMA)
 
         # Note that if we ever add SQL functions to the OCA dataset we'll need
         # to implement the same pattern as in wowutil to recreate them in the
