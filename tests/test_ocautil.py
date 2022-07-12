@@ -19,7 +19,7 @@ def copy_oca_test_data_to_nycdb_dir():
 def ensure_oca_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM wow.oca_evictions_bldgs")
+            cur.execute("SELECT COUNT(*) FROM oca.oca_evictions_bldgs")
             assert cur.fetchone()[0] > 0
 
 
