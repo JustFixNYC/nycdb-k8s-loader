@@ -64,6 +64,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "dof_sales": Schedule.EVERY_OTHER_DAY,
     "pad": Schedule.EVERY_OTHER_DAY,
     "acris": Schedule.EVERY_OTHER_DAY,
+    "pluto_latest": Schedule.EVERY_OTHER_DAY,
 }
 
 
