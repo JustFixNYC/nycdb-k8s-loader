@@ -16,7 +16,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=e65c87f872c719edf3a17edddeeae417e1625dc8
+ARG NYCDB_REV=fc70aaa76e9249db8f779a2288f3fd56b81da6cc
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
