@@ -57,6 +57,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "oath_hearings": Schedule.DAILY_12AM,
     "marshal_evictions": Schedule.DAILY_12AM,
     "oca_address": Schedule.DAILY_12AM,
+    "hpd_conh": Schedule.DAILY_12AM,
     "wow": Schedule.DAILY_7AM,
     "hpd_vacateorders": Schedule.EVERY_OTHER_DAY,
     "hpd_registrations": Schedule.EVERY_OTHER_DAY,
@@ -65,6 +66,9 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "pad": Schedule.EVERY_OTHER_DAY,
     "acris": Schedule.EVERY_OTHER_DAY,
     "pluto_latest": Schedule.EVERY_OTHER_DAY,
+    "dcp_housingdb": Schedule.EVERY_OTHER_DAY,
+    "speculation_watch_list": Schedule.EVERY_OTHER_DAY,
+    "hpd_affordable_production": Schedule.EVERY_OTHER_DAY,
 }
 
 
