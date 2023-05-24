@@ -6,7 +6,7 @@ requests==2.21.0
 tqdm==4.28.1
 urllib3==1.26.5
 xlrd==1.2.0
-sqlparse==0.2.4
+sqlparse==0.4.4
 docopt
 PyYAML>=5.1
 rollbar==0.15.0
