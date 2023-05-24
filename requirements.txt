@@ -2,7 +2,7 @@ certifi==2022.12.7
 chardet==3.0.4
 idna==2.8
 psycopg2==2.7.6.1
-requests==2.21.0
+requests==2.31.0
 tqdm==4.28.1
 urllib3==1.26.5
 xlrd==1.2.0
