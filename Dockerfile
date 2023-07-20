@@ -1,22 +1,19 @@
-FROM python:3.6 AS base
+FROM python:3.9 AS base
 
 RUN apt-get update && \
   apt-get install -y \
   unzip \
+  libpq5 \
   postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
-# The latest version of pip at the time of this writing, 20.3, results
-# in an infinite loop of "Requirement already satisfied" when
-# installing our dependencies, so we're forcibly downgrading to
-# the most recent version that works.
-RUN python -m pip install pip==20.2.4
+RUN python -m pip install pip==23.2
 
 COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=cacc0219517e557eeed61bc105278c0575e83ad0
+ARG NYCDB_REV=45bba9e42984be7cc8d9ed6f13d9d70172ab56aa
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
@@ -25,7 +22,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && rm nycdb.zip \
   && mv nycdb-${NYCDB_REV} nycdb \
   && cd nycdb/src \
-  && pip install -e .
+  && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
 ARG WOW_REV=907eb121a6f41d277152067fe2d792a087bc0ce0
@@ -41,11 +38,11 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
 # it into our Python installation and manually installing its
 # dependencies, at least until we formally turn it into a
 # real Python package.
-RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.6/site-packages/portfoliograph && \
+RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.9/site-packages/portfoliograph && \
   pip install networkx==2.5.1 && pip install numpy==1.19.5
 
 # For now we also do the same process for OCA data prep.
-RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.6/site-packages/ocaevictions && \
+RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.9/site-packages/ocaevictions && \
   pip install sshtunnel==0.4.0
 
 ENV PYTHONUNBUFFERED yup
