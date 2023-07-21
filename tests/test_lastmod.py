@@ -41,7 +41,7 @@ class TestLastmodInfo:
 
 
 class TestUrlModTracker:
-    def setup(self):
+    def setup_method(self):
         self.dbh = DictDbHash()
 
     def test_it_updates_lastmods(self, requests_mock):

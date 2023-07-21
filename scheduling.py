@@ -69,6 +69,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "dcp_housingdb": Schedule.EVERY_OTHER_DAY,
     "speculation_watch_list": Schedule.EVERY_OTHER_DAY,
     "hpd_affordable_production": Schedule.EVERY_OTHER_DAY,
+    "dof_tax_lien_sale_list": Schedule.EVERY_OTHER_DAY,
 }
 
 

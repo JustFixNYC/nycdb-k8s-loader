@@ -52,6 +52,7 @@ class SqlDbHash(AbstractDbHash):
     PARAM_SUBST_STRINGS: Dict[str, str] = {
         "sqlite3": r"?",
         "psycopg2.extensions": r"%s",
+        "psycopg": r"%s",
     }
 
     def __init__(self, conn: Connection, table: str, autocommit: bool = True):
