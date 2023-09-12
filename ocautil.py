@@ -37,26 +37,26 @@ from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 
 OCA_SCHEMA = "oca"
 
-OCA_TABLES: List[str] = WOW_YML["oca_tables"]
+OCA_TABLES: List[str] = ["oca_addresses_with_bbl", "oca_evictions_monthly", "oca_evictions_bldgs"]
 
 
 def create_and_populate_oca_tables(conn, is_testing: bool = False):
     import ocaevictions.table
 
     config = ocaevictions.table.OcaConfig(
-        oca_table_names=OCA_TABLES,
         sql_dir=WOW_SQL_DIR,
         data_dir=NYCDB_DATA_DIR,
         test_dir=TEST_DATA_DIR,
-        oca_db_url=os.environ.get("OCA_DATABASE_URL", None),
-        oca_ssh_host=os.environ.get("OCA_SSH_HOST", None),
-        oca_ssh_user=os.environ.get("OCA_SSH_USER", None),
-        oca_ssh_pkey=os.environ.get("OCA_SSH_PKEY", None),
+        aws_key=os.environ.get("AWS_ACCESS_KEY", None),
+        aws_secret=os.environ.get("AWS_SECRET_KEY", None),
+        s3_bucket=os.environ.get("OCA_S3_BUCKET", None),
+        sql_pre_files=WOW_YML["oca_pre_sql"],
+        sql_post_files=WOW_YML["oca_post_sql"],
+        s3_objects=WOW_YML["oca_s3_objects"],
         is_testing=is_testing,
     )
 
     with conn.cursor() as wow_cur:
-        ocaevictions.table.create_oca_tables(wow_cur, config)
         ocaevictions.table.populate_oca_tables(wow_cur, config)
 
     conn.commit()

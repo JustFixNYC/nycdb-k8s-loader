@@ -7,16 +7,7 @@ spec:
     spec:
       template:
         spec:
-          volumes:
-          - name: ssh-keys-v
-            secret:
-              secretName: ssh-keys
-              defaultMode: 0600 
           containers:
           - name: load-dataset
-            volumeMounts:
-            - name: ssh-keys-v
-              readOnly: true
-              mountPath: "/root/.ssh"
           restartPolicy: Never
       backoffLimit: 0
