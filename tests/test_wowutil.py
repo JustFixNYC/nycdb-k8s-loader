@@ -15,16 +15,23 @@ def create_empty_oca_tables():
     import ocaevictions.table
 
     oca_config = ocaevictions.table.OcaConfig(
-        oca_table_names=wowutil.WOW_YML["oca_tables"],
         sql_dir=wowutil.WOW_SQL_DIR,
         data_dir=NYCDB_DATA_DIR,
         test_dir=TEST_DATA_DIR,
+        aws_key=None,
+        aws_secret=None,
+        s3_bucket=None,
+        sql_pre_files=wowutil.WOW_YML["oca_pre_sql"],
+        sql_post_files=wowutil.WOW_YML["oca_post_sql"],
+        s3_objects=wowutil.WOW_YML["oca_s3_objects"],
         is_testing=True,
     )
 
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            ocaevictions.table.create_oca_tables(cur, oca_config)
+            ocaevictions.table.create_oca_s3_tables(cur, oca_config)
+            ocaevictions.table.create_derived_oca_tables(cur, oca_config)
+            
 
 
 def ensure_wow_works():

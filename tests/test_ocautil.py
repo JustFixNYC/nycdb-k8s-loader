@@ -1,6 +1,7 @@
 from pathlib import Path
 import psycopg2
 import shutil
+import subprocess
 
 from .conftest import DATABASE_URL
 from load_dataset import TEST_DATA_DIR
@@ -19,11 +20,17 @@ def copy_oca_test_data_to_nycdb_dir():
 def ensure_oca_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM oca.oca_evictions_bldgs")
-            assert cur.fetchone()[0] > 0
+            cur.execute("SELECT COUNT(*) FROM oca.oca_evictions_monthly")
+            r = cur.fetchone()
+            assert r[0] > 0
 
 
-def test_it_works(db, slack_outbox):
+def test_it_works(test_db_env, slack_outbox):
+
+    # need oca_index table to build oca_address 
+    subprocess.check_call(
+        ["python", "load_dataset.py", "oca"], env=test_db_env
+    )
 
     copy_oca_test_data_to_nycdb_dir()
 
