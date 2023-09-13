@@ -43,7 +43,7 @@ RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.9/site-packages/p
 
 # For now we also do the same process for OCA data prep.
 RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.9/site-packages/ocaevictions && \
-  pip install sshtunnel==0.4.0
+  pip install boto3==1.28.44
 
 ENV PYTHONUNBUFFERED yup
 
