@@ -7,6 +7,26 @@ RUN apt-get update && \
   postgresql-client && \
   rm -rf /var/lib/apt/lists/*
 
+
+# Setup geosupport for standardizing addresses for wow
+# check the latest version here https://www.nyc.gov/site/planning/data-maps/open-data/dwn-gdelx.page
+ENV RELEASE=23c
+ENV MAJOR=23
+ENV MINOR=3
+ENV PATCH=0
+WORKDIR /geosupport
+
+RUN FILE_NAME=linux_geo${RELEASE}_${MAJOR}_${MINOR}.zip; \
+    echo ${FILE_NAME}; \
+    curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/$FILE_NAME; \
+    unzip *.zip; \
+    rm *.zip;
+
+ENV GEOFILES=/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/fls/
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/lib/
+
+WORKDIR /
+
 RUN python -m pip install pip==23.2
 
 COPY requirements.txt /
@@ -25,7 +45,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=2069f8c29f7ce41d116e3c8b42b87ddc0ed69a80
+ARG WOW_REV=deb156f6816730359b4eb2b7c7b055244734b3f1
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
@@ -39,7 +59,9 @@ RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
 # dependencies, at least until we formally turn it into a
 # real Python package.
 RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.9/site-packages/portfoliograph && \
-  pip install networkx==2.5.1 && pip install numpy==1.19.5
+  pip install networkx==2.5.1 && \
+  pip install numpy==1.19.5 && \
+  pip install python-geosupport==1.0.8
 
 # For now we also do the same process for OCA data prep.
 RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.9/site-packages/ocaevictions && \
