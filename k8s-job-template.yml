@@ -9,5 +9,5 @@ spec:
         spec:
           containers:
           - name: load-dataset
-          restartPolicy: Never
-      backoffLimit: 0
+          restartPolicy: OnFailure
+      backoffLimit: 2
