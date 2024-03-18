@@ -5,3 +5,4 @@ k8s-jobs/
 .env
 venv/
 .ssh/
+.DS_Store
