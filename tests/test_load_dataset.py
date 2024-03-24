@@ -40,9 +40,14 @@ def run_dataset_specific_test_logic(conn, dataset):
             # Make sure the function defined by the dataset's SQL scripts exists.
             cur.execute("SELECT get_corporate_owner_info_for_regid(1)")
 
-
 @pytest.mark.parametrize("dataset", nycdb.dataset.datasets().keys())
 def test_load_dataset_works(test_db_env, dataset):
+    spatial_datasets = ["boundaries"]
+    if dataset in spatial_datasets:
+        with make_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS POSTGIS;")
+            conn.commit()
     subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
 
     with make_conn() as conn:
