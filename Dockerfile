@@ -4,7 +4,8 @@ RUN apt-get update && \
   apt-get install -y \
   unzip \
   libpq5 \
-  postgresql-client && \
+  postgresql-client \
+  postgis && \
   rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install pip==23.2
@@ -13,7 +14,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=4d3ec9d90db0c378a8a35a53a96a0c23133f85fa
+ARG NYCDB_REV=5b182fc4cb5c68c652a54889c9ac04cf8b56d4ed
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.

@@ -22,8 +22,10 @@ services:
     links:
       - db
   db:
-    image: postgres:9.6
+    image: postgis/postgis:12-3.4
     environment:
       - POSTGRES_USER=nycdb
       - POSTGRES_DB=nycdb
       - POSTGRES_PASSWORD=nycdb
+    ports:
+      - 127.0.0.1:5432:5432
