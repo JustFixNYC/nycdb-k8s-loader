@@ -20,6 +20,9 @@ def copy_signature_test_data_to_nycdb_dir():
 def ensure_signature_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM signature.signature_unhp_data")
+            r = cur.fetchone()
+            assert r[0] > 0
             cur.execute("SELECT COUNT(*) FROM signature.signature_buildings")
             r = cur.fetchone()
             assert r[0] > 0
