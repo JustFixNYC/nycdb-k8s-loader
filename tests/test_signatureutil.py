@@ -20,7 +20,7 @@ def copy_signature_test_data_to_nycdb_dir():
 def ensure_signature_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM signature.signature_bldgs")
+            cur.execute("SELECT COUNT(*) FROM signature.signature_buildings")
             r = cur.fetchone()
             assert r[0] > 0
 
@@ -34,6 +34,20 @@ def test_it_works(test_db_env, slack_outbox):
         "hpd_violations",
         "hpd_complaints",
         "marshal_evictions",
+        "oca",
+        "oca_address",
+        "hpd_litigations",
+        "rentstab_v2",
+        "hpd_charges",
+        "hpd_aep",
+        "hpd_underlying_conditions",
+        "hpd_conh",
+        "hpd_registrations",
+        "acris",
+        "dohmh_rodent_inspections",
+        "dobjobs",
+        "dob_violations",
+        "ecb_violations",
     ]
     for dataset in dependency_datasets:
         subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
