@@ -1,6 +1,6 @@
-bbl,landlord,origination_date,debt_total,debt_building,debt_unit,lender
-3002920026,John Doe,2022-01-07,500000.0,5325000,118333.333333333,Big Bank
-3002920027,John Doe,2022-02-07,500000.0,16500000,122222.222222222,Big Bank
-3002920028,John Doe,2022-03-07,500000.12,8825000,126071.428571428,Big Bank
-3002920029,John Doe,2022-04-07,500000.12,10000000,129870.129870129,Big Bank
-3002920030,John Doe,,,,,Big Bank
+bbl,lender,landlord,bip,water_charges,origination_date,debt_total
+4096930001,CPC,Zara Realty (Sobhraj Family),22,41946,2022-06-21,22401536
+4096930029,CPC,Zara Realty (Sobhraj Family),2,0,2022-06-21,20181564
+4096930011,CPC,Zara Realty (Sobhraj Family),0,0,2022-06-21,14127095
+4108200083,CPC,Zara Realty (Sobhraj Family),1,0,2022-06-21,8274441
+4108200001,CPC,Zara Realty (Sobhraj Family),14,0,2022-06-21,7265363
