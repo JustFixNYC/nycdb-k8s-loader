@@ -39,8 +39,10 @@ SIGNATURE_SCHEMA = "signature"
 
 SIGNATURE_TABLES: List[str] = [
     "signature_unhp_data",
-    "signature_bldgs",
-    "signature_groups",
+    "signature_buildings",
+    "signature_collections",
+    "signature_building_charts",
+    "signature_collection_charts",
 ]
 
 
