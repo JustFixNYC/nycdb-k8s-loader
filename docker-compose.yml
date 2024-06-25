@@ -19,6 +19,7 @@ services:
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       OCA_S3_BUCKET: ${OCA_S3_BUCKET}
+      SIGNATURE_S3_BUCKET: ${SIGNATURE_S3_BUCKET}
     links:
       - db
   db:

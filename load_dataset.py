@@ -316,6 +316,11 @@ def load_dataset(
 
         ocautil.build(config.database_url, config.use_test_data)
         return
+    elif dataset == "signature":
+        import signatureutil
+
+        signatureutil.build(config.database_url, config.use_test_data)
+        return
 
     tables = get_tables_for_dataset(dataset)
     ds = Dataset(dataset, args=config.nycdb_args)

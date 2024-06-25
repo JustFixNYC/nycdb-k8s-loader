@@ -14,7 +14,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=c020308ddb9bbf478e15be93593fb89397372cdb
+ARG NYCDB_REV=388d1f941834df1584e4024c5174580036b25634
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
@@ -26,7 +26,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=51aeed2dcf619bd025bd55c7e752877d5f9456df
+ARG WOW_REV=6870fc512b40224adfc9cd5382bf659e78c96d72
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
@@ -44,6 +44,10 @@ RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.9/site-packages/p
 
 # For now we also do the same process for OCA data prep.
 RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.9/site-packages/ocaevictions && \
+  pip install boto3==1.28.44
+
+# And again for signature dashboard...
+RUN ln -s /who-owns-what/signature /usr/local/lib/python3.9/site-packages/signature && \
   pip install boto3==1.28.44
 
 ENV PYTHONUNBUFFERED yup
