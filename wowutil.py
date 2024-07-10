@@ -21,12 +21,14 @@ import yaml
 
 from datetime import datetime
 from lib import slack
+from lib.dataset_tracker import DatasetTracker
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
 from algoliasearch.search_client import SearchClient
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
+    get_dataset_dbhash,
     get_url_dbhash,
     get_urls_for_dataset,
     save_and_reapply_permissions,
@@ -138,6 +140,9 @@ def build(db_url: str):
         for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
     ]
 
+    dataset_dbhash = get_dataset_dbhash(conn)
+    dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
+
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
@@ -164,6 +169,7 @@ def build(db_url: str):
 
         update_landlord_search_index(conn)
 
+    dataset_tracker.update_tracker()
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
 

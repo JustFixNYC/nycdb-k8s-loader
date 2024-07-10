@@ -22,9 +22,11 @@ import docopt
 import psycopg2
 
 from lib import slack
+from lib.dataset_tracker import DatasetTracker
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
+    get_dataset_dbhash,
     save_and_reapply_permissions,
     ensure_schema_exists,
     drop_tables_if_they_exist,
@@ -77,6 +79,9 @@ def build(db_url: str, is_testing: bool = False):
         TableInfo(name=name, dataset=cosmetic_dataset_name) for name in SIGNATURE_TABLES
     ]
 
+    dataset_dbhash = get_dataset_dbhash(conn)
+    dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
+
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
@@ -91,6 +96,7 @@ def build(db_url: str, is_testing: bool = False):
         # need to implement the same pattern as in wowutil to recreate them in
         # the final WOW schema.
 
+    dataset_tracker.update_tracker()
     slack.sendmsg("Finished rebuilding Signature tables.")
 
 

@@ -22,9 +22,11 @@ import docopt
 import psycopg2
 
 from lib import slack
+from lib.dataset_tracker import DatasetTracker
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
+    get_dataset_dbhash,
     save_and_reapply_permissions,
     ensure_schema_exists,
     drop_tables_if_they_exist,
@@ -37,7 +39,11 @@ from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 
 OCA_SCHEMA = "oca"
 
-OCA_TABLES: List[str] = ["oca_addresses_with_bbl", "oca_evictions_monthly", "oca_evictions_bldgs"]
+OCA_TABLES: List[str] = [
+    "oca_addresses_with_bbl",
+    "oca_evictions_monthly",
+    "oca_evictions_bldgs",
+]
 
 
 def create_and_populate_oca_tables(conn, is_testing: bool = False):
@@ -71,6 +77,9 @@ def build(db_url: str, is_testing: bool = False):
         TableInfo(name=name, dataset=cosmetic_dataset_name) for name in OCA_TABLES
     ]
 
+    dataset_dbhash = get_dataset_dbhash(conn)
+    dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
+
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
@@ -85,6 +94,7 @@ def build(db_url: str, is_testing: bool = False):
         # to implement the same pattern as in wowutil to recreate them in the
         # final WOW schema.
 
+    dataset_tracker.update_tracker()
     slack.sendmsg("Finished rebuilding OCA evictions tables.")
 
 
