@@ -51,6 +51,8 @@ def test_it_works(test_db_env, slack_outbox):
         "dobjobs",
         "dob_violations",
         "ecb_violations",
+        "dob_complaints",
+        "hpd_vacate_orders",
     ]
     for dataset in dependency_datasets:
         subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
