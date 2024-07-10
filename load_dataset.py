@@ -10,6 +10,7 @@ from typing import NamedTuple, List
 from types import SimpleNamespace
 from contextlib import contextmanager
 import urllib.parse
+from lib.dataset_tracker import DatasetTracker
 import rollbar
 import nycdb
 import nycdb.dataset
@@ -251,9 +252,13 @@ def sanity_check():
     assert TEST_DATA_DIR.exists()
 
 
-def get_dbhash(conn) -> SqlDbHash:
+def get_url_dbhash(conn) -> SqlDbHash:
     ensure_schema_exists(conn, "nycdb_k8s_loader")
     return SqlDbHash(conn, "nycdb_k8s_loader.dbhash")
+
+def get_dataset_dbhash(conn) -> SqlDbHash:
+    ensure_schema_exists(conn, "nycdb_k8s_loader")
+    return SqlDbHash(conn, "nycdb_k8s_loader.dataset_tracker")
 
 
 def reset_files_if_test(dataset: Dataset, config: Config = Config()) -> Dataset:
@@ -328,8 +333,11 @@ def load_dataset(
     ds.setup_db()
     conn = ds.db.conn
 
-    dbhash = get_dbhash(conn)
-    modtracker = UrlModTracker(get_urls_for_dataset(dataset), dbhash)
+    url_dbhash = get_url_dbhash(conn)
+    modtracker = UrlModTracker(get_urls_for_dataset(dataset), url_dbhash)
+
+    dataset_dbhash = get_dataset_dbhash(conn)
+    dataset_tracker = DatasetTracker(dataset, dataset_dbhash)
 
     check_urls = (not config.use_test_data) or force_check_urls
     if check_urls and not modtracker.did_any_urls_change():
@@ -358,6 +366,7 @@ def load_dataset(
     run_sql_if_nonempty(conn, get_all_create_function_sql_for_dataset(dataset))
 
     modtracker.update_lastmods()
+    dataset_tracker.update_tracker()
     slack.sendmsg(f"Finished loading the dataset `{dataset}` into the database.")
     print("Success!")
 

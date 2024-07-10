@@ -94,7 +94,7 @@ def shell(db_url: str):
 
 def list_lastmod(db_url: str, dataset_names: List[str]):
     with psycopg2.connect(db_url) as conn:
-        dbhash = load_dataset.get_dbhash(conn)
+        dbhash = load_dataset.get_url_dbhash(conn)
         for dataset in dataset_names:
             print(f"For the dataset {dataset}:")
             urls = load_dataset.get_urls_for_dataset(dataset)
@@ -110,7 +110,7 @@ def list_lastmod(db_url: str, dataset_names: List[str]):
 
 def reset_lastmod(db_url: str, dataset_names: List[str]):
     with psycopg2.connect(db_url) as conn:
-        dbhash = load_dataset.get_dbhash(conn)
+        dbhash = load_dataset.get_url_dbhash(conn)
         for dataset in dataset_names:
             print(f"For the dataset {dataset}:")
             urls = load_dataset.get_urls_for_dataset(dataset)

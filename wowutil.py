@@ -27,7 +27,7 @@ from algoliasearch.search_client import SearchClient
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
-    get_dbhash,
+    get_url_dbhash,
     get_urls_for_dataset,
     save_and_reapply_permissions,
     ensure_schema_exists,
@@ -73,7 +73,7 @@ def populate_portfolios_table(conn):
 
 
 def get_hpd_last_updated_date(conn):
-    dbhash = get_dbhash(conn)
+    dbhash = get_url_dbhash(conn)
     modtracker = UrlModTracker(get_urls_for_dataset("hpd_registrations"), dbhash)
     hpd_regs_last_updated = modtracker.dbhash.get(f"last_modified:{modtracker.urls[0]}")
 
