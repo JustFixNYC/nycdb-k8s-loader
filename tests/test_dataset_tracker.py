@@ -1,5 +1,6 @@
 import freezegun
 from datetime import datetime
+import pytz
 
 from lib.dataset_tracker import DatasetTracker
 from lib.dbhash import DictDbHash
@@ -15,5 +16,7 @@ class TestDatasetTracker:
             assert self.dbh.d == {}
 
             dt.update_tracker()
-            assert self.dbh.d == {"blah": datetime.now().isoformat()}
-
+            update_timestamp = datetime.now(
+                pytz.timezone("America/New_York")
+            ).isoformat()
+            assert self.dbh.d == {"blah": update_timestamp}
