@@ -140,11 +140,10 @@ def build(db_url: str):
         for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
     ]
 
-    dataset_dbhash = get_dataset_dbhash(conn)
-    dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
-
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
+        dataset_dbhash = get_dataset_dbhash(conn)
+        dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
