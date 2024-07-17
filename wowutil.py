@@ -21,13 +21,15 @@ import yaml
 
 from datetime import datetime
 from lib import slack
+from lib.dataset_tracker import DatasetTracker
 from lib.lastmod import UrlModTracker
 from lib.parse_created_tables import parse_created_tables_in_dir
 from algoliasearch.search_client import SearchClient
 from load_dataset import (
     create_temp_schema_name,
     create_and_enter_temporary_schema,
-    get_dbhash,
+    get_dataset_dbhash,
+    get_url_dbhash,
     get_urls_for_dataset,
     save_and_reapply_permissions,
     ensure_schema_exists,
@@ -73,7 +75,7 @@ def populate_portfolios_table(conn):
 
 
 def get_hpd_last_updated_date(conn):
-    dbhash = get_dbhash(conn)
+    dbhash = get_url_dbhash(conn)
     modtracker = UrlModTracker(get_urls_for_dataset("hpd_registrations"), dbhash)
     hpd_regs_last_updated = modtracker.dbhash.get(f"last_modified:{modtracker.urls[0]}")
 
@@ -140,6 +142,8 @@ def build(db_url: str):
 
     with psycopg2.connect(db_url) as conn:
         install_db_extensions(conn)
+        dataset_dbhash = get_dataset_dbhash(conn)
+        dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
             run_wow_sql(conn)
@@ -164,6 +168,7 @@ def build(db_url: str):
 
         update_landlord_search_index(conn)
 
+    dataset_tracker.update_tracker()
     slack.sendmsg("Finished rebuilding Who Owns What tables.")
 
 
