@@ -75,7 +75,7 @@ class SqlDbHash(AbstractDbHash):
     def _exec_sql(self, sql: str, params: Iterable[Any] = tuple()) -> Cursor:
         sql = sql.replace("?", self.param_subst)
         cur = self.conn.cursor()
-        cur.execute(sql, params)
+        cur.execute(sql, params) # type: ignore
         return cur
 
     def __setitem__(self, key: str, value: str) -> None:

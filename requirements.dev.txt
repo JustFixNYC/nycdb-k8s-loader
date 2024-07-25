@@ -8,3 +8,6 @@ requests-mock
 pyflakes==2.1.0
 black==20.8b1
 freezegun==1.5.1
+types-requests
+types-pytz
+types-PyYAML
