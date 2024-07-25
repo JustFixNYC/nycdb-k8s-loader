@@ -1,5 +1,5 @@
 -r requirements.txt
-mypy==0.782
+mypy==1.11.0
 pytest
 requests-mock
 boto3
@@ -8,3 +8,6 @@ requests-mock
 pyflakes==2.1.0
 black==20.8b1
 freezegun==1.5.1
+types-requests
+types-pytz
+types-PyYAML
