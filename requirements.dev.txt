@@ -1,5 +1,5 @@
 -r requirements.txt
-mypy==0.782
+mypy==1.11.0
 pytest
 requests-mock
 boto3
