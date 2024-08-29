@@ -9,5 +9,9 @@ spec:
         spec:
           containers:
           - name: load-dataset
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "1000m"
           restartPolicy: Never
-      backoffLimit: 0
+      backoffLimit: 2

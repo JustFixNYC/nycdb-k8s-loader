@@ -4,7 +4,8 @@ RUN apt-get update && \
   apt-get install -y \
   unzip \
   libpq5 \
-  postgresql-client && \
+  postgresql-client \
+  postgis && \
   rm -rf /var/lib/apt/lists/*
 
 
@@ -34,7 +35,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=db519b651cc6ec72f78fbd6c18a59cff537708da
+ARG NYCDB_REV=388d1f941834df1584e4024c5174580036b25634
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
@@ -66,6 +67,10 @@ RUN ln -s /who-owns-what/portfoliograph /usr/local/lib/python3.10/site-packages/
 
 # For now we also do the same process for OCA data prep.
 RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.10/site-packages/ocaevictions && \
+  pip install boto3==1.28.44
+
+# And again for signature dashboard...
+RUN ln -s /who-owns-what/signature /usr/local/lib/python3.9/site-packages/signature && \
   pip install boto3==1.28.44
 
 ENV PYTHONUNBUFFERED yup

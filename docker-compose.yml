@@ -19,11 +19,14 @@ services:
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       OCA_S3_BUCKET: ${OCA_S3_BUCKET}
+      SIGNATURE_S3_BUCKET: ${SIGNATURE_S3_BUCKET}
     links:
       - db
   db:
-    image: postgres:9.6
+    image: postgis/postgis:12-3.4
     environment:
       - POSTGRES_USER=nycdb
       - POSTGRES_DB=nycdb
       - POSTGRES_PASSWORD=nycdb
+    ports:
+      - 127.0.0.1:5432:5432

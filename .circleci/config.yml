@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     machine:
-      image: ubuntu-2004:202201-02
+      image: default
     environment:
       PROD_IMAGE: justfixnyc/nycdb-k8s-loader:latest
       DEV_IMAGE: justfixnyc/nycdb-k8s-loader:dev
