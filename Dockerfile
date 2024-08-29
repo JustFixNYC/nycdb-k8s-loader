@@ -70,7 +70,7 @@ RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.10/site-packages/oc
   pip install boto3==1.28.44
 
 # And again for signature dashboard...
-RUN ln -s /who-owns-what/signature /usr/local/lib/python3.9/site-packages/signature && \
+RUN ln -s /who-owns-what/signature /usr/local/lib/python3.10/site-packages/signature && \
   pip install boto3==1.28.44
 
 ENV PYTHONUNBUFFERED yup
