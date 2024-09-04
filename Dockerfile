@@ -19,10 +19,10 @@ ENV PATCH=0
 WORKDIR /geosupport
 
 RUN FILE_NAME=linux_geo${RELEASE}_${MAJOR}_${MINOR}.zip; \
-  echo ${FILE_NAME}; \
-  curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/$FILE_NAME; \
-  unzip *.zip; \
-  rm *.zip;
+    echo ${FILE_NAME}; \
+    curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/$FILE_NAME; \
+    unzip *.zip; \
+    rm *.zip;
 
 ENV GEOFILES=/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/fls/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/lib/
