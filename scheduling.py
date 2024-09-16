@@ -78,6 +78,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "dhs_daily_shelter_count": Schedule.DAILY_12AM,
     "signature": Schedule.DAILY_7AM,
     "dohmh_rodent_inspections": Schedule.DAILY_12AM,
+    "hpd_ll44": Schedule.EVERY_OTHER_DAY,
 }
 
 
