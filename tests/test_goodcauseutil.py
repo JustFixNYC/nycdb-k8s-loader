@@ -32,7 +32,7 @@ def test_it_works(test_db_env, slack_outbox):
     for dataset in dependency_datasets:
         subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
 
-    wowutil.main(["build", "--test=True"], db_url=DATABASE_URL)
+    wowutil.main(["build"], db_url=DATABASE_URL)
 
     goodcauseutil.main(["build", "--test=True"], db_url=DATABASE_URL)
 
