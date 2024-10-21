@@ -37,7 +37,9 @@ def test_it_works(test_db_env, slack_outbox):
             "dob_certificate_occupancy",
         ]
         for dataset in dependency_datasets:
-            subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
+            subprocess.check_call(
+                ["python", "load_dataset.py", dataset], env=test_db_env
+            )
 
         wowutil.main(["build"], db_url=DATABASE_URL)
 

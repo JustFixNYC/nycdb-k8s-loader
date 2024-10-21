@@ -2,7 +2,7 @@
 Create Good Cause Eviction eligibility data tables on the Who Owns What database.
 
 Usage:
-  goodcauseutil.py build [options] [test]
+  goodcauseutil.py build [options]
 
 Options:
   -h --help     Show this screen.
@@ -29,30 +29,20 @@ from load_dataset import (
     drop_tables_if_they_exist,
     change_table_schemas,
     TableInfo,
-    NYCDB_DATA_DIR,
-    TEST_DATA_DIR,
 )
 from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 
 WOW_SCHEMA = "wow"
 
-SIGNATURE_TABLES: List[str] = ["gce_eligibility"]
+GOOD_CAUSE_TABLES: List[str] = ["gce_eligibility"]
 
 
-def create_and_populate_signature_tables(conn, is_testing: bool = False):
+def create_and_populate_good_cause_tables(conn, is_testing: bool = False):
     import goodcause.table
 
     config = goodcause.table.GoodCauseConfig(
         sql_dir=WOW_SQL_DIR,
-        data_dir=NYCDB_DATA_DIR,
-        test_dir=TEST_DATA_DIR,
-        aws_key=os.environ.get("AWS_ACCESS_KEY", None),
-        aws_secret=os.environ.get("AWS_SECRET_KEY", None),
-        s3_bucket=os.environ.get("SIGNATURE_S3_BUCKET", None),
-        sql_pre_files=WOW_YML["signature_pre_sql"],
-        sql_post_files=WOW_YML["signature_post_sql"],
-        s3_objects=WOW_YML["signature_s3_objects"],
-        is_testing=is_testing,
+        sql_files=WOW_YML["good_cause_sql"],
     )
 
     with conn.cursor() as wow_cur:
@@ -61,13 +51,14 @@ def create_and_populate_signature_tables(conn, is_testing: bool = False):
     conn.commit()
 
 
-def build(db_url: str, is_testing: bool = False):
+def build(db_url: str):
     slack.sendmsg("Rebuilding Good Cause Eviction tables...")
 
     cosmetic_dataset_name = "good_cause_eviction"
 
     tables = [
-        TableInfo(name=name, dataset=cosmetic_dataset_name) for name in SIGNATURE_TABLES
+        TableInfo(name=name, dataset=cosmetic_dataset_name)
+        for name in GOOD_CAUSE_TABLES
     ]
 
     with psycopg2.connect(db_url) as conn:
@@ -76,7 +67,7 @@ def build(db_url: str, is_testing: bool = False):
         dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
-            create_and_populate_signature_tables(conn, is_testing)
+            create_and_populate_good_cause_tables(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -94,8 +85,7 @@ def main(argv: List[str], db_url: str):
     args = docopt.docopt(__doc__, argv=argv)
 
     if args["build"]:
-        is_testing = bool(args["--test"])
-        build(db_url, is_testing)
+        build(db_url)
 
 
 if __name__ == "__main__":
