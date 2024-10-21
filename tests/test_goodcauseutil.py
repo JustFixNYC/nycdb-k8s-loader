@@ -2,7 +2,9 @@ from pathlib import Path
 import psycopg2
 import subprocess
 
+from tests.test_wowutil import load_dependee_datasets
 from .conftest import DATABASE_URL
+from load_dataset import Config
 import wowutil
 import goodcauseutil
 
@@ -18,12 +20,12 @@ def ensure_goodcause_works():
 
 
 def test_it_works(test_db_env, slack_outbox):
+    # load wow depenedencies (since wow itself is GCE dependency)
+    config = Config(database_url=DATABASE_URL, use_test_data=True)
+    load_dependee_datasets(config)
 
-    # need these tables to build signature
+    # need these additional tables to build good cause eviction data
     dependency_datasets = [
-        "pluto_latest",
-        "rentstab_v2",
-        "acris",
         "fc_shd",
         "nycha_bbls",
         "hpd_ll44",
