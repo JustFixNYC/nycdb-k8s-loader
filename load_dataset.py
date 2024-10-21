@@ -256,6 +256,7 @@ def get_url_dbhash(conn) -> SqlDbHash:
     ensure_schema_exists(conn, "nycdb_k8s_loader")
     return SqlDbHash(conn, "nycdb_k8s_loader.dbhash")
 
+
 def get_dataset_dbhash(conn) -> SqlDbHash:
     ensure_schema_exists(conn, "nycdb_k8s_loader")
     return SqlDbHash(conn, "nycdb_k8s_loader.dataset_tracker")
@@ -325,6 +326,11 @@ def load_dataset(
         import signatureutil
 
         signatureutil.build(config.database_url, config.use_test_data)
+        return
+    elif dataset == "good_cause_eviction":
+        import goodcauseutil
+
+        goodcauseutil.build(config.database_url, config.use_test_data)
         return
 
     tables = get_tables_for_dataset(dataset)
