@@ -215,7 +215,7 @@ def create_and_enter_temporary_schema(conn, schema: str):
                     # path since we want functions like first(), which are
                     # declared in the public schema, to work. And we need oca
                     # because those tables are used for wow_bldgs.
-                    f"SET search_path TO {schema}, public, oca",
+                    f"SET search_path TO {schema}, public, oca, wow",
                 ]
             )
         )
@@ -255,6 +255,7 @@ def sanity_check():
 def get_url_dbhash(conn) -> SqlDbHash:
     ensure_schema_exists(conn, "nycdb_k8s_loader")
     return SqlDbHash(conn, "nycdb_k8s_loader.dbhash")
+
 
 def get_dataset_dbhash(conn) -> SqlDbHash:
     ensure_schema_exists(conn, "nycdb_k8s_loader")
@@ -325,6 +326,11 @@ def load_dataset(
         import signatureutil
 
         signatureutil.build(config.database_url, config.use_test_data)
+        return
+    elif dataset == "good_cause_eviction":
+        import goodcauseutil
+
+        goodcauseutil.build(config.database_url)
         return
 
     tables = get_tables_for_dataset(dataset)

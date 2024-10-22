@@ -31,7 +31,6 @@ def create_empty_oca_tables():
         with conn.cursor() as cur:
             ocaevictions.table.create_oca_s3_tables(cur, oca_config)
             ocaevictions.table.create_derived_oca_tables(cur, oca_config)
-            
 
 
 def ensure_wow_works():

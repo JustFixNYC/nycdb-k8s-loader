@@ -73,6 +73,7 @@ def populate_landlords_table(conn):
     portfoliograph.standardize.populate_landlords_table(conn)
     conn.commit()
 
+
 def populate_portfolios_table(conn):
     import portfoliograph.table
 
