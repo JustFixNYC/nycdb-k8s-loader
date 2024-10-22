@@ -330,7 +330,7 @@ def load_dataset(
     elif dataset == "good_cause_eviction":
         import goodcauseutil
 
-        goodcauseutil.build(config.database_url, config.use_test_data)
+        goodcauseutil.build(config.database_url)
         return
 
     tables = get_tables_for_dataset(dataset)
