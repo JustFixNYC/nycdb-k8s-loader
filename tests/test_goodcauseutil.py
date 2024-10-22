@@ -43,7 +43,7 @@ def test_it_works(test_db_env, slack_outbox):
 
         wowutil.main(["build"], db_url=DATABASE_URL)
 
-        goodcauseutil.main(["build", "--test=True"], db_url=DATABASE_URL)
+        goodcauseutil.main(["build"], db_url=DATABASE_URL)
 
         ensure_goodcause_works()
 
@@ -51,6 +51,6 @@ def test_it_works(test_db_env, slack_outbox):
         assert slack_outbox[-1] == "Finished rebuilding Good Cause Eviction tables."
 
         # Ensure running build again doesn't raise an exception.
-        goodcauseutil.main(["build", "--test=True"], db_url=DATABASE_URL)
+        goodcauseutil.main(["build"], db_url=DATABASE_URL)
 
         ensure_goodcause_works()
