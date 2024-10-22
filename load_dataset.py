@@ -215,7 +215,7 @@ def create_and_enter_temporary_schema(conn, schema: str):
                     # path since we want functions like first(), which are
                     # declared in the public schema, to work. And we need oca
                     # because those tables are used for wow_bldgs.
-                    f"SET search_path TO {schema}, public, oca",
+                    f"SET search_path TO {schema}, public, oca, wow",
                 ]
             )
         )
