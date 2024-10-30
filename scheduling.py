@@ -11,13 +11,13 @@ class Schedule(Enum):
     """
 
     # Daily at around midnight.
-    DAILY_12AM = "0 24 * * ?"
+    DAILY_12AM = "0 0 * * ?"
 
     # Daily at around 7am.
     DAILY_7AM = "0 7 * * ?"
 
     # Every other day around midnight.
-    EVERY_OTHER_DAY = "0 24 */2 * ?"
+    EVERY_OTHER_DAY = "0 0 */2 * ?"
 
     # Once per year.
     YEARLY = "@yearly"

@@ -6,9 +6,9 @@ from scheduling import Schedule
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (Schedule.DAILY_12AM, "0 24 * * ?"),
+        (Schedule.DAILY_12AM, "0 0 * * ?"),
         (Schedule.DAILY_7AM, "0 7 * * ?"),
-        (Schedule.EVERY_OTHER_DAY, "0 24 */2 * ?"),
+        (Schedule.EVERY_OTHER_DAY, "0 0 */2 * ?"),
         (Schedule.YEARLY, "@yearly"),
     ],
 )
