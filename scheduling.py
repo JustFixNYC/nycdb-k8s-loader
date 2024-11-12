@@ -5,18 +5,19 @@ import nycdb.dataset
 
 class Schedule(Enum):
     """
-    Abstracts away scheduling frequency from the particular
-    scheduling technology being used (AWS, k8s, etc).
+    Abstracts away scheduling frequency from the particular scheduling
+    technology being used (AWS, k8s, etc). All times are in NYC local time, so
+    adjust with daylight savings.
     """
 
-    # Daily at around midnight EST.
-    DAILY_12AM = "0 4 * * ?"
+    # Daily at around midnight.
+    DAILY_12AM = "0 0 * * ?"
 
-    # Daily at around 7am EST.
-    DAILY_7AM = "0 11 * * ?"
+    # Daily at around 7am.
+    DAILY_7AM = "0 7 * * ?"
 
-    # Every other day around midnight EST.
-    EVERY_OTHER_DAY = "0 4 */2 * ?"
+    # Every other day around midnight.
+    EVERY_OTHER_DAY = "0 0 */2 * ?"
 
     # Once per year.
     YEARLY = "@yearly"
