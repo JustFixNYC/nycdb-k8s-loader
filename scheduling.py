@@ -11,14 +11,14 @@ class Schedule(Enum):
     """
 
     # Daily at around 11 pm.
-    DAILY_11PM = "0 0 * * ?"
+    DAILY_11PM = "0 23 * * ?"
 
     # Daily at around 7am.
     DAILY_7AM = "0 7 * * ?"
 
     # Alternating days around 11 pm (not perfect with Feb and Leap years, but that's ok).
-    ODD_DAYS_11PM = "0 0 1-31/2 * ?"
-    EVEN_DAYS_11PM = "0 0 2-30/2 * ?"
+    ODD_DAYS_11PM = "0 23 1-31/2 * ?"
+    EVEN_DAYS_11PM = "0 23 2-30/2 * ?"
 
     # Once per year.
     YEARLY = "@yearly"
