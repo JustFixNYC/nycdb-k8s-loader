@@ -10,14 +10,15 @@ class Schedule(Enum):
     adjust with daylight savings.
     """
 
-    # Daily at around midnight.
-    DAILY_12AM = "0 0 * * ?"
+    # Daily at around 11 pm.
+    DAILY_11PM = "0 0 * * ?"
 
     # Daily at around 7am.
     DAILY_7AM = "0 7 * * ?"
 
-    # Every other day around midnight.
-    EVERY_OTHER_DAY = "0 0 */2 * ?"
+    # Alternating days around 11 pm (not perfect with Feb and Leap years, but that's ok).
+    ODD_DAYS_11PM = "0 0 1-31/2 * ?"
+    EVEN_DAYS_11PM = "0 0 2-30/2 * ?"
 
     # Once per year.
     YEARLY = "@yearly"
@@ -49,38 +50,39 @@ DATASET_NAMES: List[str] = [
 DEFAULT_SCHEDULE = Schedule.YEARLY
 
 DATASET_SCHEDULES: Dict[str, Schedule] = {
-    "oca": Schedule.DAILY_12AM,
-    "dobjobs": Schedule.DAILY_12AM,
-    "dob_complaints": Schedule.DAILY_12AM,
-    "dob_violations": Schedule.DAILY_12AM,
-    "ecb_violations": Schedule.DAILY_12AM,
-    "hpd_violations": Schedule.DAILY_12AM,
-    "oath_hearings": Schedule.DAILY_12AM,
-    "marshal_evictions": Schedule.DAILY_12AM,
-    "oca_address": Schedule.DAILY_12AM,
-    "hpd_conh": Schedule.DAILY_12AM,
-    "hpd_aep": Schedule.DAILY_12AM,
-    "hpd_underlying_conditions": Schedule.DAILY_12AM,
+    "oca": Schedule.DAILY_11PM,
+    "dobjobs": Schedule.DAILY_11PM,
+    "dob_complaints": Schedule.DAILY_11PM,
+    "dob_violations": Schedule.DAILY_11PM,
+    "ecb_violations": Schedule.DAILY_11PM,
+    "hpd_violations": Schedule.DAILY_11PM,
+    "oath_hearings": Schedule.DAILY_11PM,
+    "marshal_evictions": Schedule.DAILY_11PM,
+    "oca_address": Schedule.DAILY_11PM,
+    "hpd_conh": Schedule.DAILY_11PM,
+    "hpd_aep": Schedule.DAILY_11PM,
+    "hpd_underlying_conditions": Schedule.DAILY_11PM,
     "wow": Schedule.DAILY_7AM,
-    "hpd_vacateorders": Schedule.EVERY_OTHER_DAY,
-    "hpd_registrations": Schedule.EVERY_OTHER_DAY,
-    "hpd_complaints": Schedule.EVERY_OTHER_DAY,
-    "dof_sales": Schedule.EVERY_OTHER_DAY,
-    "pad": Schedule.EVERY_OTHER_DAY,
-    "acris": Schedule.EVERY_OTHER_DAY,
-    "pluto_latest": Schedule.EVERY_OTHER_DAY,
-    "dcp_housingdb": Schedule.EVERY_OTHER_DAY,
-    "speculation_watch_list": Schedule.EVERY_OTHER_DAY,
-    "hpd_affordable_production": Schedule.EVERY_OTHER_DAY,
-    "dof_tax_lien_sale_list": Schedule.EVERY_OTHER_DAY,
-    "dob_certificate_occupancy": Schedule.EVERY_OTHER_DAY,
-    "dob_safety_violations": Schedule.EVERY_OTHER_DAY,
-    "hpd_charges": Schedule.DAILY_12AM,
-    "dhs_daily_shelter_count": Schedule.DAILY_12AM,
+    "hpd_vacateorders": Schedule.ODD_DAYS_11PM,
+    "hpd_registrations": Schedule.ODD_DAYS_11PM,
+    "hpd_complaints": Schedule.ODD_DAYS_11PM,
+    "dof_sales": Schedule.ODD_DAYS_11PM,
+    "pad": Schedule.ODD_DAYS_11PM,
+    "acris": Schedule.EVEN_DAYS_11PM,
+    "pluto_latest": Schedule.ODD_DAYS_11PM,
+    "dcp_housingdb": Schedule.ODD_DAYS_11PM,
+    "speculation_watch_list": Schedule.ODD_DAYS_11PM,
+    "hpd_affordable_production": Schedule.ODD_DAYS_11PM,
+    "dof_tax_lien_sale_list": Schedule.ODD_DAYS_11PM,
+    "dob_certificate_occupancy": Schedule.ODD_DAYS_11PM,
+    "dob_safety_violations": Schedule.ODD_DAYS_11PM,
+    "hpd_charges": Schedule.DAILY_11PM,
+    "dhs_daily_shelter_count": Schedule.DAILY_11PM,
     "signature": Schedule.DAILY_7AM,
-    "dohmh_rodent_inspections": Schedule.DAILY_12AM,
-    "hpd_ll44": Schedule.EVERY_OTHER_DAY,
-    "dos_active_corporations": Schedule.EVERY_OTHER_DAY,
+    "dohmh_rodent_inspections": Schedule.DAILY_11PM,
+    "hpd_ll44": Schedule.ODD_DAYS_11PM,
+    "dos_active_corporations": Schedule.ODD_DAYS_11PM,
+    "dof_property_valuation_and_assessments": Schedule.ODD_DAYS_11PM,
 }
 
 
