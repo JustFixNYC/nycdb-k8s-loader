@@ -35,7 +35,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=b8e1532b3cfcc1f7738b1cf9a1cfca997e2fe62d
+ARG NYCDB_REV=23bf81975d7a7c3e7cd16d168e42bf6339b4d08b
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
@@ -47,7 +47,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=7294956ad5dd8152e07ab7dd9e099f675a79349c
+ARG WOW_REV=151a532be17f39bfdf994aa7d4f1f3590f2d04ea
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
