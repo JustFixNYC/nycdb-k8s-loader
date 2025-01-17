@@ -3,7 +3,7 @@ from pathlib import Path
 import psycopg2
 import subprocess
 
-from tests.test_wowutil import create_empty_oca_tables, load_dependee_datasets
+from tests.test_wowutil import load_dependee_datasets
 from .conftest import DATABASE_URL, make_conn
 from load_dataset import Config
 import wowutil
