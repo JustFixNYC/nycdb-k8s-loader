@@ -4,7 +4,7 @@ import psycopg2
 import subprocess
 
 from tests.test_wowutil import create_empty_oca_tables, load_dependee_datasets
-from .conftest import DATABASE_URL
+from .conftest import DATABASE_URL, make_conn
 from load_dataset import Config
 import wowutil
 import goodcauseutil
@@ -21,13 +21,16 @@ def ensure_goodcause_works():
 
 
 def test_it_works(test_db_env, slack_outbox):
-    # Let's intentionally disable our access to Algolio
+    # Let's intentionally disable our access to Algolia
     # so we don't update the landlord search index
     with mock.patch.dict("os.environ", {"ALGOLIA_API_KEY": ""}, clear=True):
+        with make_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS POSTGIS;")
+            conn.commit()
         # load wow depenedencies (since wow itself is GCE dependency)
         config = Config(database_url=DATABASE_URL, use_test_data=True)
         load_dependee_datasets(config)
-        create_empty_oca_tables()
 
         # need these additional tables to build good cause eviction data
         dependency_datasets = [

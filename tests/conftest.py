@@ -36,7 +36,6 @@ def drop_db(dbname):
 
 def create_db(dbname):
     exec_outside_of_transaction("CREATE DATABASE " + dbname)
-    exec_outside_of_transaction("CREATE EXTENSION IF NOT EXISTS POSTGIS")
 
 
 @pytest.fixture()
