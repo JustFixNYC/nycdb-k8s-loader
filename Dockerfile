@@ -47,7 +47,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=64970a0d48ad52c8b29fe31adc9758972ed0d293
+ARG WOW_REV=bbe57fd823d286b623514ac7ba1c08ce4c223e9d
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
@@ -72,6 +72,9 @@ RUN ln -s /who-owns-what/ocaevictions /usr/local/lib/python3.10/site-packages/oc
 # And again for signature dashboard...
 RUN ln -s /who-owns-what/signature /usr/local/lib/python3.10/site-packages/signature && \
   pip install boto3==1.28.44
+
+# And again for good cause eviction...
+RUN ln -s /who-owns-what/goodcause /usr/local/lib/python3.10/site-packages/goodcause
 
 ENV PYTHONUNBUFFERED yup
 

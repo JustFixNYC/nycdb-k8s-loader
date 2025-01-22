@@ -16,6 +16,9 @@ class Schedule(Enum):
     # Daily at around 7am.
     DAILY_7AM = "0 7 * * ?"
 
+    # Daily at around 8am EST.
+    DAILY_8AM = "0 12 * * ?"
+
     # Alternating days around 11 pm (not perfect with Feb and Leap years, but that's ok).
     ODD_DAYS_11PM = "0 23 1-31/2 * ?"
     EVEN_DAYS_11PM = "0 23 2-30/2 * ?"
@@ -36,7 +39,12 @@ class Schedule(Enum):
         return self.value
 
 
-CUSTOM_DATASET_NAMES: List[str] = ["wow", "oca_address", "signature"]
+CUSTOM_DATASET_NAMES: List[str] = [
+    "wow",
+    "oca_address",
+    "signature",
+    "good_cause_eviction",
+]
 
 # The names of all valid NYC-DB datasets.
 DATASET_NAMES: List[str] = [
@@ -63,6 +71,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "hpd_aep": Schedule.DAILY_11PM,
     "hpd_underlying_conditions": Schedule.DAILY_11PM,
     "wow": Schedule.DAILY_7AM,
+    "good_cause_eviction": Schedule.DAILY_8AM,
     "hpd_vacateorders": Schedule.ODD_DAYS_11PM,
     "hpd_registrations": Schedule.ODD_DAYS_11PM,
     "hpd_complaints": Schedule.ODD_DAYS_11PM,

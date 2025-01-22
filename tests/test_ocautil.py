@@ -27,10 +27,8 @@ def ensure_oca_works():
 
 def test_it_works(test_db_env, slack_outbox):
 
-    # need oca_index table to build oca_address 
-    subprocess.check_call(
-        ["python", "load_dataset.py", "oca"], env=test_db_env
-    )
+    # need oca_index table to build oca_address
+    subprocess.check_call(["python", "load_dataset.py", "oca"], env=test_db_env)
 
     copy_oca_test_data_to_nycdb_dir()
 
