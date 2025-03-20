@@ -47,7 +47,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=1c653bae2b7e233c5c592d3f355e8b80ca551b19
+ARG WOW_REV=5a4151540415ca4cbc2fe3348eb1f48170658a26
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
