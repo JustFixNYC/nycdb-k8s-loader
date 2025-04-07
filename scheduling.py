@@ -10,6 +10,9 @@ class Schedule(Enum):
     adjust with daylight savings.
     """
 
+    # Daily at around 10 pm.
+    DAILY_10PM = "0 22 * * ?"
+
     # Daily at around 11 pm.
     DAILY_11PM = "0 23 * * ?"
 
@@ -58,15 +61,16 @@ DATASET_NAMES: List[str] = [
 DEFAULT_SCHEDULE = Schedule.YEARLY
 
 DATASET_SCHEDULES: Dict[str, Schedule] = {
-    "oca": Schedule.DAILY_11PM,
+    "oca": Schedule.DAILY_10PM,
+    "oca_address": Schedule.DAILY_10PM,
+    "hpd_violations": Schedule.DAILY_10PM,
+    "hpd_complaints": Schedule.DAILY_10PM,
     "dobjobs": Schedule.DAILY_11PM,
     "dob_complaints": Schedule.DAILY_11PM,
     "dob_violations": Schedule.DAILY_11PM,
     "ecb_violations": Schedule.DAILY_11PM,
-    "hpd_violations": Schedule.DAILY_11PM,
     "oath_hearings": Schedule.DAILY_11PM,
     "marshal_evictions": Schedule.DAILY_11PM,
-    "oca_address": Schedule.DAILY_11PM,
     "hpd_conh": Schedule.DAILY_11PM,
     "hpd_aep": Schedule.DAILY_11PM,
     "hpd_underlying_conditions": Schedule.DAILY_11PM,
@@ -74,7 +78,6 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "good_cause_eviction": Schedule.DAILY_8AM,
     "hpd_vacateorders": Schedule.ODD_DAYS_11PM,
     "hpd_registrations": Schedule.ODD_DAYS_11PM,
-    "hpd_complaints": Schedule.ODD_DAYS_11PM,
     "dof_sales": Schedule.ODD_DAYS_11PM,
     "pad": Schedule.ODD_DAYS_11PM,
     "acris": Schedule.EVEN_DAYS_11PM,
