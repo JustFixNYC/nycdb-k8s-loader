@@ -51,8 +51,6 @@ WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.Ful
 
 WOW_SCRIPTS: List[str] = WOW_YML["sql"]
 
-BACKUP_SCHEMA = "backup"
-
 
 def run_wow_sql(conn):
     with conn.cursor() as cur:
@@ -160,9 +158,7 @@ def build(db_url: str):
             populate_portfolios_table(conn)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
-                ensure_schema_exists(conn, BACKUP_SCHEMA)
-                drop_tables_if_they_exist(conn, tables, BACKUP_SCHEMA)
-                change_table_schemas(conn, tables, WOW_SCHEMA, BACKUP_SCHEMA)
+                drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
                 change_table_schemas(conn, tables, temp_schema, WOW_SCHEMA)
 
         # The WoW tables are now ready, but the functions defined by WoW were
