@@ -15,7 +15,7 @@ MY_DIR = Path(__file__).parent.resolve()
 def ensure_goodcause_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM wow.gce_eligibility")
+            cur.execute("SELECT COUNT(*) FROM wow.gce_screener")
             r = cur.fetchone()
             assert r[0] > 0
 
