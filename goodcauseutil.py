@@ -34,7 +34,7 @@ from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 
 WOW_SCHEMA = "wow"
 
-GOOD_CAUSE_TABLES: List[str] = ["gce_eligibility"]
+GOOD_CAUSE_TABLES: List[str] = ["gce_screener"]
 
 
 def create_and_populate_good_cause_tables(conn, is_testing: bool = False):
