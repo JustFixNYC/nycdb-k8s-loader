@@ -112,6 +112,8 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
 
 
 def get_urls_for_dataset(dataset: str) -> List[str]:
+    if "files" not in nycdb.dataset.datasets()[dataset]:
+        return []
     return [fileinfo["url"] for fileinfo in nycdb.dataset.datasets()[dataset]["files"]]
 
 
