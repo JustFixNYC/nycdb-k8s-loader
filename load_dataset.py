@@ -349,7 +349,11 @@ def load_dataset(
     dataset_tracker = DatasetTracker(dataset, dataset_dbhash)
 
     check_urls = (not config.use_test_data) or force_check_urls
-    if check_urls and not modtracker.did_any_urls_change():
+    if (
+        check_urls
+        and not modtracker.did_any_urls_change()
+        and dataset not in ["pluto_latest_districts", "pluto_latest_districts_25a"]
+    ):
         slack.sendmsg(
             f"The dataset `{dataset}` has not changed since we last retrieved it."
         )
