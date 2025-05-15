@@ -92,7 +92,8 @@ def get_temp_schemas(conn, dataset: str) -> List[str]:
 def get_dataset_tables() -> List[TableInfo]:
     result: List[TableInfo] = []
     for dataset_name, info in nycdb.dataset.datasets().items():
-        for schema in list_wrap(info["schema"]):
+        schemas = list_wrap(info["schema"]) if "schema" in info else []
+        for schema in schemas:
             result.append(TableInfo(name=schema["table_name"], dataset=dataset_name))
         result.extend(
             [
@@ -111,6 +112,8 @@ def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
 
 
 def get_urls_for_dataset(dataset: str) -> List[str]:
+    if "files" not in nycdb.dataset.datasets()[dataset]:
+        return []
     return [fileinfo["url"] for fileinfo in nycdb.dataset.datasets()[dataset]["files"]]
 
 
