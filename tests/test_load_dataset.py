@@ -49,6 +49,14 @@ def test_load_dataset_works(test_db_env, dataset):
             with conn.cursor() as cur:
                 cur.execute("CREATE EXTENSION IF NOT EXISTS POSTGIS;")
             conn.commit()
+    
+    if dataset == "pluto_latest_districts":
+        subprocess.check_call(["python", "load_dataset.py", "pluto_latest"], env=test_db_env)
+        subprocess.check_call(["python", "load_dataset.py", "boundaries"], env=test_db_env)
+    elif dataset == "pluto_latest_districts_25a":
+        subprocess.check_call(["python", "load_dataset.py", "pluto_latest"], env=test_db_env)
+        subprocess.check_call(["python", "load_dataset.py", "boundaries_25a"], env=test_db_env)
+
     subprocess.check_call(["python", "load_dataset.py", dataset], env=test_db_env)
 
     with make_conn() as conn:
