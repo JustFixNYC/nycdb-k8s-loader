@@ -49,12 +49,14 @@ WOW_SQL_DIR = Path(WOW_DIR / "sql")
 
 WOW_YML = yaml.load((WOW_DIR / "who-owns-what.yml").read_text(), Loader=yaml.FullLoader)
 
-WOW_SCRIPTS: List[str] = WOW_YML["sql"]
+WOW_PRE_SCRIPTS: List[str] = WOW_YML["wow_pre_sql"]
+WOW_POST_SCRIPTS: List[str] = WOW_YML["wow_post_sql"]
+WOW_ALL_SCRIPTS = WOW_PRE_SCRIPTS + WOW_POST_SCRIPTS
 
 
-def run_wow_sql(conn):
+def run_wow_sql(conn, scripts: List[str]):
     with conn.cursor() as cur:
-        for filename in WOW_SCRIPTS:
+        for filename in scripts:
             print(f"Running {filename}...")
             sql = (WOW_SQL_DIR / filename).read_text()
             cur.execute(sql)
@@ -144,7 +146,7 @@ def build(db_url: str):
 
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
-        for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_SCRIPTS)
+        for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_ALL_SCRIPTS)
     ]
 
     with psycopg2.connect(db_url) as conn:
@@ -153,9 +155,10 @@ def build(db_url: str):
         dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
         temp_schema = create_temp_schema_name(cosmetic_dataset_name)
         with create_and_enter_temporary_schema(conn, temp_schema):
-            run_wow_sql(conn)
+            run_wow_sql(conn, WOW_PRE_SCRIPTS)
             populate_landlords_table(conn)
             populate_portfolios_table(conn)
+            run_wow_sql(conn, WOW_POST_SCRIPTS)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
                 drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
@@ -169,7 +172,7 @@ def build(db_url: str):
         # to set their search_path to "{WOW_SCHEMA}, public" or else the function
         # may not be found or might even crash!
         print(f"Re-running CREATE FUNCTION statements in the {WOW_SCHEMA} schema...")
-        sql = get_all_create_function_sql(WOW_SQL_DIR, WOW_SCRIPTS)
+        sql = get_all_create_function_sql(WOW_SQL_DIR, WOW_ALL_SCRIPTS)
         run_sql_if_nonempty(
             conn, sql, initial_sql=f"SET search_path TO {WOW_SCHEMA}, public"
         )
