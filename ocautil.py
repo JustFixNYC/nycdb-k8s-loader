@@ -19,7 +19,7 @@ import sys
 from typing import List
 
 import docopt
-import psycopg2
+import psycopg
 
 from lib import slack
 from lib.dataset_tracker import DatasetTracker
@@ -77,7 +77,7 @@ def build(db_url: str, is_testing: bool = False):
         TableInfo(name=name, dataset=cosmetic_dataset_name) for name in OCA_TABLES
     ]
 
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         install_db_extensions(conn)
         dataset_dbhash = get_dataset_dbhash(conn)
         dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)
