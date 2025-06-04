@@ -6,6 +6,7 @@ RUN apt-get update && \
   libpq5 \
   libproj-dev \
   gdal-bin \
+  binutils \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
