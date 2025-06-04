@@ -4,12 +4,6 @@ RUN apt-get update && \
   apt-get install -y \
   unzip \
   libpq5 \
-  libproj-dev \
-  gdal-bin \
-  binutils \
-  libgeos-dev \
-  libgdal-dev \
-  geos \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
@@ -18,9 +12,9 @@ RUN apt-get update && \
 # Setup geosupport for standardizing addresses for wow
 # check the latest version here https://www.nyc.gov/site/planning/data-maps/open-data/dwn-gdelx.page
 # make sure this gets updated regularly, and matches the version in who-owns-what
-ENV RELEASE=23c
-ENV MAJOR=23
-ENV MINOR=3
+ENV RELEASE=25b
+ENV MAJOR=25
+ENV MINOR=2
 ENV PATCH=0
 WORKDIR /geosupport
 
