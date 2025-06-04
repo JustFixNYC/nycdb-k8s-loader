@@ -4,6 +4,9 @@ RUN apt-get update && \
   apt-get install -y \
   unzip \
   libpq5 \
+  libgeos-dev \
+  libgeos-c1v5 \
+  libgeos++ \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
