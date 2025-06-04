@@ -10,7 +10,7 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 
-RUN python -m pip install pip==23.2
+RUN python -m pip install pip==25.1.1
 
 COPY requirements.txt /
 RUN pip install -r requirements.txt
