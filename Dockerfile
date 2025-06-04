@@ -1,12 +1,9 @@
-FROM python:3.10 AS base
+FROM nycplanning/docker-geosupport:latest AS base
 
 RUN apt-get update && \
   apt-get install -y \
   unzip \
   libpq5 \
-  libgeos-dev \
-  libgeos-c1v5 \
-  libgeos++ \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
