@@ -9,6 +9,7 @@ RUN apt-get update && \
   binutils \
   libgeos-dev \
   libgdal-dev \
+  geos \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
