@@ -3,7 +3,7 @@ FROM nycplanning/docker-geosupport:latest AS base
 RUN apt-get update && \
   apt-get install -y \
   unzip \
-  python3-dev \
+  python3.12-dev \
   libpq-dev \
   postgresql-client \
   postgis && \
