@@ -3,7 +3,7 @@ FROM nycplanning/docker-geosupport:latest AS base
 RUN apt-get update && \
   apt-get install -y \
   unzip \
-  libpq5 \
+  libpq-dev \
   postgresql-client \
   postgis && \
   rm -rf /var/lib/apt/lists/*
@@ -76,7 +76,7 @@ RUN ln -s /who-owns-what/signature /usr/local/lib/python3.10/site-packages/signa
 # And again for good cause eviction...
 RUN ln -s /who-owns-what/goodcause /usr/local/lib/python3.10/site-packages/goodcause
 
-ENV PYTHONUNBUFFERED yup
+ENV PYTHONUNBUFFERED=yup
 
 # Note that these won't actually work until we either mount /app as a
 # volume or copy it over. For dev, this will be done via volume mount
