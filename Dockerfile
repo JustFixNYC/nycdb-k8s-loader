@@ -9,7 +9,27 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 
-RUN python -m pip install pip==25.1.1
+# Setup geosupport for standardizing addresses for wow
+# check the latest version here https://www.nyc.gov/site/planning/data-maps/open-data/dwn-gdelx.page
+# make sure this gets updated regularly, and matches the version in who-owns-what
+ENV RELEASE=25b
+ENV MAJOR=25
+ENV MINOR=2
+ENV PATCH=0
+WORKDIR /geosupport
+
+RUN FILE_NAME=linux_geo${RELEASE}_${MAJOR}.${MINOR}.zip; \
+    echo ${FILE_NAME}; \
+    curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/geosupport/$FILE_NAME; \
+    unzip *.zip; \
+    rm *.zip;
+
+ENV GEOFILES=/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/fls/
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/lib/
+
+WORKDIR /
+
+RUN python -m pip install pip==23.2
 
 COPY requirements.txt /
 RUN pip install -r requirements.txt
