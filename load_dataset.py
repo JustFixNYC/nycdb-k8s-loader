@@ -101,7 +101,8 @@ def get_dataset_tables() -> List[TableInfo]:
                 for name in parse_nycdb_created_tables(info.get("sql", []))
             ]
         )
-    return result
+    # remove duplicates since derived tables from sql may also appear in nycdb schema
+    return list(set(result))
 
 
 def get_tables_for_dataset(dataset: str) -> List[TableInfo]:
