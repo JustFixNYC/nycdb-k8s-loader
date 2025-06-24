@@ -20,10 +20,10 @@ def copy_signature_test_data_to_nycdb_dir():
 def ensure_signature_works():
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM signature.signature_unhp_data")
+            cur.execute("SELECT COUNT(*) FROM signature.signature_unhp_data2")
             r = cur.fetchone()
             assert r[0] > 0
-            cur.execute("SELECT COUNT(*) FROM signature.signature_buildings")
+            cur.execute("SELECT COUNT(*) FROM signature.signature_buildings2")
             r = cur.fetchone()
             assert r[0] > 0
 
@@ -33,6 +33,7 @@ def test_it_works(test_db_env, slack_outbox):
     # need these tables to build signature
     dependency_datasets = [
         "pluto_latest",
+        "pluto_latest_districts",
         "boundaries",
         "hpd_violations",
         "hpd_complaints",
