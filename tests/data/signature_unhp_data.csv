@@ -1,6 +1,5 @@
-bbl,lender,landlord,bip,water_charges,origination_date,debt_total
-4096930001,CPC,Zara Realty (Sobhraj Family),22,41946,2022-06-21,22401536
-4096930029,CPC,Zara Realty (Sobhraj Family),2,0,2022-06-21,20181564
-4096930011,CPC,Zara Realty (Sobhraj Family),0,0,2022-06-21,14127095
-4108200083,CPC,Zara Realty (Sobhraj Family),1,0,2022-06-21,8274441
-4108200001,CPC,Zara Realty (Sobhraj Family),14,0,2022-06-21,7265363
+bbl,loan_pool,landlord,bip,water_charges,origination_date,debt_total
+2058811086,CPC,Aaron Jungreis,224,49822,2020-10-10,12445162
+2058141155,CPC,Aaron Jungreis,164,0,2020-10-10,12300000
+1021710032,CPC,Aaron Jungreis,24,0,2020-10-10,6175814
+1021720030,CPC,Aaron Jungreis,121,1733,2020-10-10,4865247
