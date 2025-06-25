@@ -40,11 +40,12 @@ from wowutil import WOW_SQL_DIR, WOW_YML, install_db_extensions
 SIGNATURE_SCHEMA = "signature"
 
 SIGNATURE_TABLES: List[str] = [
-    "signature_unhp_data",
-    "signature_buildings",
-    "signature_collections",
-    "signature_building_charts",
-    "signature_collection_charts",
+    "signature_unhp_buildings",
+    "signature_unhp_loan_status",
+    "signature_buildings2",
+    "signature_collections2",
+    "signature_building_charts2",
+    "signature_collection_charts2",
 ]
 
 

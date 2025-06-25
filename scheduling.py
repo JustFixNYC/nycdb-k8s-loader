@@ -19,8 +19,8 @@ class Schedule(Enum):
     # Daily at around 7am.
     DAILY_7AM = "0 7 * * ?"
 
-    # Daily at around 8am EST.
-    DAILY_8AM = "0 12 * * ?"
+    # Daily at around 8am.
+    DAILY_8AM = "0 8 * * ?"
 
     # Alternating days around 11 pm (not perfect with Feb and Leap years, but that's ok).
     ODD_DAYS_11PM = "0 23 1-31/2 * ?"
