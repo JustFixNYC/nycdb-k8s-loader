@@ -2,5 +2,13 @@ bbl,status,date,url,label
 2058811086,foreclosure,2025-01-01,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Foreclosure Document 1
 2058811086,,,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Foreclosure Document 2
 1021710032,write_down,2025-01-01,,
-1021710032,foreclosure,2025-03-01,,
+1021710032,left_program,2025-03-01,,
 2058141155,write_down,2025-04-01,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Refinance Document 1
+1021720039,write_down_rehab,2025-01-09,,
+1021720032,rehab,2025-01-10,,
+1021720032,refinanced,2025-02-10,,
+1018480003,refinanced,2025-04-15,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Refinance Document 1
+1018480003,write_down,2025-06-20,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Refinance Document 1
+3016780088,refinanced,2025-01-01,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Foreclosure Document 1
+3016780088,foreclosure,2025-06-01,https://a836-acris.nyc.gov/DS/DocumentSearch/DocumentImageView?doc_id=2024053000137007,Foreclosure Document 1
+3016780088,left_program,2025-07-10,,
