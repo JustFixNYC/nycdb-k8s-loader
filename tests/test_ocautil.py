@@ -1,5 +1,5 @@
 from pathlib import Path
-import psycopg2
+import psycopg
 import shutil
 import subprocess
 
@@ -18,7 +18,7 @@ def copy_oca_test_data_to_nycdb_dir():
 
 
 def ensure_oca_works():
-    with psycopg2.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM oca.oca_evictions_monthly")
             r = cur.fetchone()

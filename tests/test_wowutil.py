@@ -1,5 +1,5 @@
 from unittest import mock
-import psycopg2
+import psycopg
 
 from .conftest import DATABASE_URL
 from load_dataset import Config, load_dataset, NYCDB_DATA_DIR, TEST_DATA_DIR
@@ -27,14 +27,14 @@ def create_empty_oca_tables():
         is_testing=True,
     )
 
-    with psycopg2.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             ocaevictions.table.create_oca_s3_tables(cur, oca_config)
             ocaevictions.table.create_derived_oca_tables(cur, oca_config)
 
 
 def ensure_wow_works():
-    with psycopg2.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM wow.wow_bldgs")
             assert cur.fetchone()[0] > 0
