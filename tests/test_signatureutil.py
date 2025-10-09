@@ -23,7 +23,7 @@ def ensure_signature_works():
             cur.execute("SELECT COUNT(*) FROM signature.signature_unhp_buildings")
             r = cur.fetchone()
             assert r[0] > 0
-            cur.execute("SELECT COUNT(*) FROM signature.signature_buildings2")
+            cur.execute("SELECT COUNT(*) FROM signature.signature_buildings")
             r = cur.fetchone()
             assert r[0] > 0
 
