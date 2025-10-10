@@ -53,6 +53,8 @@ WOW_PRE_SCRIPTS: List[str] = WOW_YML["wow_pre_sql"]
 WOW_POST_SCRIPTS: List[str] = WOW_YML["wow_post_sql"]
 WOW_ALL_SCRIPTS = WOW_PRE_SCRIPTS + WOW_POST_SCRIPTS
 
+EXTRA_TABLES_TO_PRESERVE = ["landlords_with_connections"]
+
 
 def run_wow_sql(conn, scripts: List[str]):
     with conn.cursor() as cur:
@@ -147,6 +149,7 @@ def build(db_url: str):
     tables = [
         TableInfo(name=name, dataset=cosmetic_dataset_name)
         for name in parse_created_tables_in_dir(WOW_SQL_DIR, WOW_ALL_SCRIPTS)
+        + EXTRA_TABLES_TO_PRESERVE
     ]
 
     with psycopg2.connect(db_url) as conn:
