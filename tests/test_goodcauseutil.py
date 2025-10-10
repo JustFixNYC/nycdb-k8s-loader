@@ -40,6 +40,8 @@ def test_it_works(test_db_env, slack_outbox):
             "nycha_bbls",
             "hpd_ll44",
             "dob_certificate_occupancy",
+            "boundaries",
+            "pluto_latest_districts",
         ]
         for dataset in dependency_datasets:
             subprocess.check_call(
