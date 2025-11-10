@@ -86,7 +86,7 @@ DATASET_SCHEDULES: Dict[str, Schedule] = {
     "speculation_watch_list": Schedule.ODD_DAYS_11PM,
     "hpd_affordable_production": Schedule.ODD_DAYS_11PM,
     "dof_tax_lien_sale_list": Schedule.ODD_DAYS_11PM,
-    "dob_certificate_occupancy": Schedule.ODD_DAYS_11PM,
+    "dob_certificate_occupancy": Schedule.DAILY_11PM,
     "dob_safety_violations": Schedule.ODD_DAYS_11PM,
     "hpd_charges": Schedule.DAILY_11PM,
     "dhs_daily_shelter_count": Schedule.DAILY_11PM,
