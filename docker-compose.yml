@@ -23,7 +23,7 @@ services:
     links:
       - db
   db:
-    image: postgis/postgis:12-3.4
+    image: postgis/postgis:14-3.5
     environment:
       - POSTGRES_USER=nycdb
       - POSTGRES_DB=nycdb
