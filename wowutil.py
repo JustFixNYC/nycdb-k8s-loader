@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import Dict, List
 import docopt
-import psycopg2
+import psycopg
 import yaml
 
 from datetime import datetime
@@ -152,7 +152,7 @@ def build(db_url: str):
         + EXTRA_TABLES_TO_PRESERVE
     ]
 
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         install_db_extensions(conn)
         dataset_dbhash = get_dataset_dbhash(conn)
         dataset_tracker = DatasetTracker(cosmetic_dataset_name, dataset_dbhash)

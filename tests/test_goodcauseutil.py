@@ -1,6 +1,6 @@
 from unittest import mock
 from pathlib import Path
-import psycopg2
+import psycopg
 import subprocess
 
 from tests.test_wowutil import create_empty_oca_tables, load_dependee_datasets
@@ -13,7 +13,7 @@ MY_DIR = Path(__file__).parent.resolve()
 
 
 def ensure_goodcause_works():
-    with psycopg2.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM wow.gce_screener")
             r = cur.fetchone()

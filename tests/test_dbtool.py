@@ -1,7 +1,7 @@
 from unittest.mock import patch
 import contextlib
 import subprocess
-import psycopg2
+import psycopg
 import pytest
 
 import dbtool
@@ -48,7 +48,7 @@ def test_rowcounts_works(test_db_env, capsys):
 
 @contextlib.contextmanager
 def load_dbhash():
-    with psycopg2.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL) as conn:
         dbhash = load_dataset.get_url_dbhash(conn)
         yield dbhash
 
