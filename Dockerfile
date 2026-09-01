@@ -19,10 +19,10 @@ ENV PATCH=0
 WORKDIR /geosupport
 
 RUN FILE_NAME=linux_geo${RELEASE}_${MAJOR}.${MINOR}.zip; \
-    echo ${FILE_NAME}; \
-    curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/geosupport/$FILE_NAME; \
-    unzip *.zip; \
-    rm *.zip;
+  echo ${FILE_NAME}; \
+  curl -O https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/geosupport/$FILE_NAME; \
+  unzip *.zip; \
+  rm *.zip;
 
 ENV GEOFILES=/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/fls/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/geosupport/version-${RELEASE}_${MAJOR}.${MINOR}/lib/
@@ -35,7 +35,7 @@ COPY requirements.txt /
 RUN pip install -r requirements.txt
 
 ARG NYCDB_REPO=https://github.com/nycdb/nycdb
-ARG NYCDB_REV=833cf305545f936d7db57654a30552b52d4ee6a7
+ARG NYCDB_REV=873ec9f91f5059f76cd5ded8ea1cb784bd89bcc5
 # We need to retrieve the source directly from the repository
 # because we need access to the test data, which isn't part of
 # the pypi distribution.
@@ -47,7 +47,7 @@ RUN curl -L ${NYCDB_REPO}/archive/${NYCDB_REV}.zip > nycdb.zip \
   && pip install .
 
 ARG WOW_REPO=https://github.com/justFixNYC/who-owns-what
-ARG WOW_REV=606b1bd4053e26ec9846daeb67bdd0c17050f0a9
+ARG WOW_REV=09869ccda9f6b340f93a67edb4d50468b44d709a
 RUN curl -L ${WOW_REPO}/archive/${WOW_REV}.zip > wow.zip \
   && unzip wow.zip \
   && rm wow.zip \
