@@ -189,6 +189,16 @@ To run the test suite, run:
 docker-compose run app pytest
 ```
 
+### Agent test workflow
+
+Token-efficient workflow for Cursor agents: full output goes to `test-results/latest.log`; read `test-results/summary.md` for failures and scoped re-run commands.
+
+| Command | Purpose |
+| --- | --- |
+| `./scripts/run_tests_for_agent.sh` | WOW-scoped suite → `test-results/summary.md` |
+| `FULL=1 ./scripts/run_tests_for_agent.sh` | Full NYCDB dataset suite (slow; pre-merge) |
+| `./run_pytest_docker.sh <nodeid> -q --tb=short` | Scoped verify |
+
 ## Updating the NYC-DB version
 
 At present, the revision of NYC-DB's Python library is pulled directly
