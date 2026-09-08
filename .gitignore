@@ -6,3 +6,4 @@ k8s-jobs/
 venv/
 .ssh/
 .DS_Store
+.env.production
