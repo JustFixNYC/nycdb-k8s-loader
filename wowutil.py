@@ -33,8 +33,7 @@ from load_dataset import (
     get_urls_for_dataset,
     save_and_reapply_permissions,
     ensure_schema_exists,
-    drop_tables_if_they_exist,
-    change_table_schemas,
+    drop_and_move_tables_in_single_transaction,
     run_sql_if_nonempty,
     get_all_create_function_sql,
     TableInfo,
@@ -164,8 +163,9 @@ def build(db_url: str):
             run_wow_sql(conn, WOW_POST_SCRIPTS)
             ensure_schema_exists(conn, WOW_SCHEMA)
             with save_and_reapply_permissions(conn, tables, WOW_SCHEMA):
-                drop_tables_if_they_exist(conn, tables, WOW_SCHEMA)
-                change_table_schemas(conn, tables, temp_schema, WOW_SCHEMA)
+                drop_and_move_tables_in_single_transaction(
+                    conn, tables, temp_schema, WOW_SCHEMA
+                )
 
         # The WoW tables are now ready, but the functions defined by WoW were
         # in the temporary schema that just got destroyed. Let's re-run only
