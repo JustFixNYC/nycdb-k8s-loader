@@ -7,3 +7,5 @@ venv/
 .ssh/
 .DS_Store
 .env.production
+benchmark_results/
+test-results/

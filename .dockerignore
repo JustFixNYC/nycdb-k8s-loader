@@ -11,3 +11,4 @@ venv/
 .devcontainer/
 .circleci/
 .ssh/
+.env.production

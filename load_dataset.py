@@ -169,6 +169,25 @@ def drop_tables_if_they_exist(conn, tables: List[TableInfo], schema: str):
     conn.commit()
 
 
+def drop_and_move_tables_in_single_transaction(
+    conn,
+    tables: List[TableInfo],
+    temp_schema: str,
+    live_schema: str,
+) -> None:
+    """Drop live tables and move temp tables in one transaction."""
+    with conn.cursor() as cur:
+        for table in tables:
+            name = f"{live_schema}.{table.name}"
+            print(f"Dropping table '{name}' if it exists.")
+            cur.execute(f"DROP TABLE IF EXISTS {name} CASCADE")
+        for table in tables:
+            name = f"{temp_schema}.{table.name}"
+            print(f"Setting table '{name}' schema to '{live_schema}'.")
+            cur.execute(f"ALTER TABLE {name} SET SCHEMA {live_schema}")
+    conn.commit()
+
+
 @contextlib.contextmanager
 def save_and_reapply_permissions(conn, tables: List[TableInfo], schema: str):
     """
