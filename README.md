@@ -40,7 +40,20 @@ First, you'll want to create an `.env` file by copying the example one:
 cp .env.example .env     # Or 'copy .env.example .env' on Windows
 ```
 
+Keep `.env` local/docker only. Production RDS URLs for Kubernetes deploy belong
+in `.env.production` (gitignored). See [Environment files](#environment-files).
+
 Take a look at the `.env` file and make any changes to it, if you like.
+
+## Environment files
+
+| File | Purpose |
+|------|---------|
+| `.env.example` | Committed template with local/docker defaults |
+| `.env` | Your local copy — **local/docker URLs only** |
+| `.env.production` | Production RDS for k8s deploy (gitignored, humans only) |
+
+Load production env manually: `set -a; source .env.production; set +a`
 
 ## Development
 
