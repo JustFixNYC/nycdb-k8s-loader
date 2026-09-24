@@ -2,8 +2,7 @@ import os
 import time
 import urllib.parse
 from unittest.mock import patch
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+import psycopg
 import pytest
 
 DATABASE_URL = os.environ["TEST_DATABASE_URL"]
@@ -23,8 +22,8 @@ CONNECT_ARGS = dict(
 def exec_outside_of_transaction(sql: str):
     args = CONNECT_ARGS.copy()
     del args["database"]
-    conn = psycopg2.connect(**args)
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    conn = psycopg.connect(**args)
+    conn.isolation_level = psycopg.IsolationLevel.READ_UNCOMMITTED
     with conn.cursor() as curs:
         curs.execute(sql)
     conn.close()
@@ -53,10 +52,10 @@ def db():
 
     while True:
         try:
-            psycopg2.connect(**CONNECT_ARGS).close()
+            psycopg.connect(**CONNECT_ARGS).close()
             created = True
             break
-        except psycopg2.OperationalError as e:
+        except psycopg.OperationalError as e:
             if 'database "{}" does not exist'.format(db) in str(e):
                 create_db(db)
                 created = True
@@ -80,7 +79,7 @@ def conn(db):
 
 
 def make_conn():
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg.connect(DATABASE_URL)
 
 
 @pytest.fixture()

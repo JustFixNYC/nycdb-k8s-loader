@@ -19,7 +19,7 @@ Environment variables:
 import os
 import sys
 from typing import List, Tuple, Iterator
-import psycopg2
+import psycopg
 import docopt
 import nycdb.dataset
 from nycdb.utility import list_wrap
@@ -74,7 +74,7 @@ def print_rowcounts(conn, table_names: List[str], schema: str = "public"):
 
 
 def show_rowcounts(db_url: str, dataset_names: List[str]):
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         for dataset in dataset_names:
             tables = get_tables_for_datasets([dataset])
             schemas = load_dataset.get_temp_schemas(conn, dataset)
@@ -93,7 +93,7 @@ def shell(db_url: str):
 
 
 def list_lastmod(db_url: str, dataset_names: List[str]):
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         dbhash = load_dataset.get_url_dbhash(conn)
         for dataset in dataset_names:
             print(f"For the dataset {dataset}:")
@@ -109,7 +109,7 @@ def list_lastmod(db_url: str, dataset_names: List[str]):
 
 
 def reset_lastmod(db_url: str, dataset_names: List[str]):
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         dbhash = load_dataset.get_url_dbhash(conn)
         for dataset in dataset_names:
             print(f"For the dataset {dataset}:")
@@ -130,7 +130,7 @@ def grant_schema_read(db_url: str, user: str, schema: str):
         f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA {schema} to {user}",
         f"{alter_default_privs} GRANT EXECUTE ON FUNCTIONS TO {user}",
     ]
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
             for statement in statements:
                 cur.execute(statement)
@@ -155,7 +155,7 @@ def create_user(db_url: str, user: str):
         f"CREATE USER {user} WITH ENCRYPTED PASSWORD '{password}'",
         f"GRANT CONNECT ON DATABASE {db} TO {user}",
     ]
-    with psycopg2.connect(db_url) as conn:
+    with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
             for statement in statements:
                 cur.execute(statement)
