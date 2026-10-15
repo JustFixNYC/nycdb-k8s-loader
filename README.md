@@ -168,7 +168,11 @@ deliver with `ETag` and/or `Last-Modified` metadata about when
 they have last been modified. The loader takes advantage
 of this information: if a dataset hasn't changed
 since the last time the loader retrieved it, it won't be retrieved
-or loaded again. This behavior can be overridden by deleting the
+or loaded again. Change detection uses lightweight **HEAD** requests
+(not full downloads) and compares `ETag` / `Last-Modified` to stored
+values, because some hosts (including SODA3 export URLs) respond to
+conditional requests with HTTP 200 even when the file is unchanged.
+This behavior can be overridden by deleting the
 last modification metadata for the dataset via the
 `dbtool.py lastmod:reset` command.
 

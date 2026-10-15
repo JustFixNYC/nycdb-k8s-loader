@@ -129,15 +129,18 @@ def test_unmodified_datasets_are_not_retrieved(db, requests_mock, slack_outbox):
     )
 
     for url in urls:
-        requests_mock.get(url, text="blah", headers={"ETag": "blah"})
+        requests_mock.head(url, headers={"ETag": "blah"})
 
     load()
     assert slack_outbox[0] == "Downloading the dataset `hpd_registrations`..."
     slack_outbox[:] = []
 
     for url in urls:
-        requests_mock.get(
-            url, request_headers={"If-None-Match": "blah"}, status_code=304
+        requests_mock.head(
+            url,
+            request_headers={"If-None-Match": "blah"},
+            status_code=200,
+            headers={"ETag": "blah"},
         )
     load()
     assert slack_outbox == [
@@ -146,7 +149,7 @@ def test_unmodified_datasets_are_not_retrieved(db, requests_mock, slack_outbox):
     slack_outbox[:] = []
 
     for url in urls:
-        requests_mock.get(url, text="blah2", headers={"ETag": "blah2"})
+        requests_mock.head(url, headers={"ETag": "blah2"})
     load()
     assert slack_outbox[0] == "Downloading the dataset `hpd_registrations`..."
 

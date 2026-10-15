@@ -4,6 +4,7 @@ __pycache__/
 k8s-jobs/
 .env
 venv/
+.venv/
 .ssh/
 .DS_Store
 .env.production

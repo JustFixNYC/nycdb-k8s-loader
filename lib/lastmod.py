@@ -3,6 +3,8 @@ import requests
 
 from .dbhash import AbstractDbHash
 
+HEAD_TIMEOUT = (30, 180)
+
 
 class LastmodInfo(NamedTuple):
     url: str
@@ -37,6 +39,19 @@ class LastmodInfo(NamedTuple):
             headers["If-Modified-Since"] = self.last_modified
         return headers
 
+    def metadata_matches(self, other: "LastmodInfo") -> bool:
+        if not (self.etag or self.last_modified):
+            return False
+        if self.etag and other.etag and self.etag == other.etag:
+            return True
+        if (
+            self.last_modified
+            and other.last_modified
+            and self.last_modified == other.last_modified
+        ):
+            return True
+        return False
+
 
 class UrlModTracker:
     updated_lastmods: List[LastmodInfo]
@@ -50,15 +65,23 @@ class UrlModTracker:
         self.updated_lastmods = []
         for url in self.urls:
             print(f"Checking {url}...")
-            lminfo = LastmodInfo.read_from_dbhash(url, self.dbhash)
-            res = requests.get(url, headers=lminfo.to_request_headers(), stream=True)
-            if res.status_code == 200:
-                self.updated_lastmods.append(
-                    LastmodInfo.from_response_headers(url, res.headers)
+            stored = LastmodInfo.read_from_dbhash(url, self.dbhash)
+            res = requests.head(
+                url, headers=stored.to_request_headers(), timeout=HEAD_TIMEOUT
+            )
+            if res.status_code in (405, 501):
+                raise requests.HTTPError(
+                    f"HEAD not supported for change detection at {url} "
+                    f"(HTTP {res.status_code})",
+                    response=res,
                 )
-            elif res.status_code != 304:
-                res.raise_for_status()
-            res.close()
+            if res.status_code == 304:
+                continue
+            res.raise_for_status()
+            current = LastmodInfo.from_response_headers(url, res.headers)
+            if stored.metadata_matches(current):
+                continue
+            self.updated_lastmods.append(current)
         return len(self.updated_lastmods) > 0
 
     def update_lastmods(self) -> None:
